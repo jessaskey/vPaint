@@ -9,66 +9,93 @@ using VPaint.Tools;
 
 namespace VPaint
 {
-    public class VectorToolController
+    public static class VectorToolController
     {
-        private VectorPanel _vectorPanel = null;
-        private VectorTool _currentVectorTool = VectorTool.Selecting;
-        private IVectorTool _currentVectorToolObject = null;
+        private static VectorPanel _vectorPanel = null;
+        private static VectorTool _currentVectorTool = VectorTool.Selecting;
+        private static IVectorTool _currentVectorToolObject = null;
 
-        private VectorToolSelect _toolSelect = null;
-        private VectorToolDraw _toolDraw = null;
-        private VectorToolScissor _toolScissor = null;
+        private static VectorToolSelect _toolSelect = new VectorToolSelect();
+        private static VectorToolDraw _toolDraw = new VectorToolDraw();
+        private static VectorToolScissor _toolScissor = new VectorToolScissor();
 
-        public VectorToolController() { }
+        //public VectorToolController() { }
 
-        public VectorToolController(VectorPanel vectorPanel)
+        //public VectorToolController(VectorPanel vectorPanel)
+        //{
+        //    _vectorPanel = vectorPanel;
+        //    //_toolSelect = new VectorToolSelect(vectorPanel);
+        //    //_toolDraw = new VectorToolDraw(vectorPanel);
+        //    //_toolScissor = new VectorToolScissor(vectorPanel);
+        //    _currentVectorToolObject = _toolSelect;
+        //}
+
+        public static void MouseDown(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
         {
-            _vectorPanel = vectorPanel;
-            _toolSelect = new VectorToolSelect(vectorPanel);
-            _toolDraw = new VectorToolDraw(vectorPanel);
-            _toolScissor = new VectorToolScissor(vectorPanel);
-            _currentVectorToolObject = _toolSelect;
+            _currentVectorToolObject?.MouseDown(sender, e, snapPoint, modifierKeys);
         }
 
-        public void MouseDown(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
+        public static void MouseMove(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
         {
-            _currentVectorToolObject.MouseDown(sender, e, snapPoint, modifierKeys);
+            _currentVectorToolObject?.MouseMove(sender, e, snapPoint, modifierKeys);
         }
 
-        public void MouseMove(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
+        public static void MouseUp(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
         {
-            _currentVectorToolObject.MouseMove(sender, e, snapPoint, modifierKeys);
+            _currentVectorToolObject?.MouseUp(sender, e, snapPoint, modifierKeys);
         }
 
-        public void MouseUp(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
+        public static void KeyDown(object sender, KeyEventArgs e)
         {
-            _currentVectorToolObject.MouseUp(sender, e, snapPoint, modifierKeys);
+            _currentVectorToolObject?.KeyDown(sender, e);
         }
 
-        public void KeyDown(object sender, KeyEventArgs e)
-        {
-            _currentVectorToolObject.KeyDown(sender, e);
-        }
-
-        public ToolAction CurrentToolAction = ToolAction.None;
-        public VectorTool CurrentVectorTool
+        public static ToolAction CurrentToolAction = ToolAction.None;
+        public static VectorTool CurrentVectorTool
         {
             get { return _currentVectorTool; }
             set
             {
                 _currentVectorTool = value;
-
+                switch (_currentVectorTool)
+                {
+                    case VectorTool.Selecting:
+                        _currentVectorToolObject = _toolSelect;
+                        break;
+                    case VectorTool.Drawing:
+                        _currentVectorToolObject = _toolDraw;
+                        break;
+                    case VectorTool.Scissors:
+                        _currentVectorToolObject = _toolScissor;
+                        break;
+                }
             }
         }
 
-        public Point DragStart
+        public static VectorPanel VectorPanel
         {
-            get { return _currentVectorToolObject.DragStart; }
+            get {
+                return _vectorPanel;
+            }
+            set
+            {
+                _vectorPanel = value;
+            }  
         }
 
-        public DragShape DragShape
+        public static Point DragStart
         {
-            get { return _currentVectorToolObject.DragShape; }
+            get { return _currentVectorToolObject != null ? _currentVectorToolObject.DragStart : Point.Empty; }
+        }
+
+        public static Point CurrentPosition
+        {
+            get { return _currentVectorToolObject != null ? _currentVectorToolObject.CurrentPosition : Point.Empty; }
+        }
+
+        public static DragShape DragShape
+        {
+            get { return _currentVectorToolObject != null ? _currentVectorToolObject.DragShape : DragShape.Line; }
         }
 
     }

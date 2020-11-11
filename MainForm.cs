@@ -17,7 +17,7 @@ namespace VPaint
     {
         private static ColorPicker _colorPicker = null;
         private ReportCoordinatesDelegate _reportCoordinates = null;
-        private VectorTool _currentPaletteTool = VectorTool.Selecting;
+        //private VectorTool _currentPaletteTool = VectorTool.Selecting;
         //private UpdateCursorDelegate _updateCursor = null;
         //private UpdateStatusDelegate _updateStatus = null;
 
@@ -85,11 +85,10 @@ namespace VPaint
 
             toolStrip1.ResumeLayout();
 
-            //_currentPaletteTool = PaletteTool.Selecting;
-            SetDrawingTool();
             //open new drawing on startup
             NewDrawing();
-            
+            //_currentPaletteTool = PaletteTool.Selecting;
+            SetCurrentTool(VectorTool.Selecting);
         }
 
         public void ReportCoordinates(Point absoluteCoordinate, Point relativeCoordinate, Size currentVector)
@@ -264,8 +263,9 @@ namespace VPaint
             vectorPanel.OnUpdateCursor = UpdateCursor;
             vectorPanel.OnUpdateStatus = UpdateStatus;
             vectorPanel.Dock = DockStyle.Fill;
-            vectorPanel.SetCurrentTool(_currentPaletteTool);
-            
+            VectorToolController.VectorPanel = vectorPanel;
+            //vectorPanel.SetCurrentTool(_currentPaletteTool);
+
             page.Controls.Add(vectorPanel);
             page.Tag = vectorPanel;
             page.Text = drawing.GetFilename();
@@ -335,7 +335,7 @@ namespace VPaint
 
         private void tabControlImages_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            VectorToolController.VectorPanel = GetCurrentVectorPanel();
         }
 
         private void tabControlImages_DrawItem(object sender, DrawItemEventArgs e)
@@ -384,7 +384,7 @@ namespace VPaint
                     if (vItem != null)
                     {
                         vItem.Start.Selected = true;
-                        vItem.Start.Selected = true;
+                        vItem.End.Selected = true;
                     }
                 }
                 VectorPanel vp = GetCurrentVectorPanel();
@@ -498,6 +498,7 @@ namespace VPaint
                             d.Vectors.Add(v);
                         }
                     }
+                    vp.RedrawControl();
                 }
             }
             else
@@ -508,31 +509,36 @@ namespace VPaint
 
         private void ToolStripButtonPointer_Click(object sender, EventArgs e)
         {
-            ApplyRadioEffect(sender);
-            _currentPaletteTool = VectorTool.Selecting;
-            SetDrawingTool();
+            ApplyToolStripRadioEffect(sender);
+            SetCurrentTool(VectorTool.Selecting);
         }
 
         private void ToolStripButtonCrosshair_Click(object sender, EventArgs e)
         {
-            ApplyRadioEffect(sender);
-            _currentPaletteTool = VectorTool.Drawing;
-            SetDrawingTool();
+            ApplyToolStripRadioEffect(sender);
+            SetCurrentTool(VectorTool.Drawing);
         }
 
-        private void SetDrawingTool()
+        private void toolStripButtonScissors_Click(object sender, EventArgs e)
         {
-            foreach(TabPage page in tabControlImages.TabPages)
-            {
-                VectorPanel panel = page.Tag as VectorPanel;
-                if (panel != null)
-                {
-                    panel.SetCurrentTool(_currentPaletteTool);
-                }
-            }
+            ApplyToolStripRadioEffect(sender);
+            SetCurrentTool(VectorTool.Scissors);
+        }
+
+        private void SetCurrentTool(VectorTool vectorTool)
+        {
+            //_currentPaletteTool = vectorTool;
+            //foreach(TabPage page in tabControlImages.TabPages)
+            //{
+            //    VectorPanel panel = page.Tag as VectorPanel;
+            //    if (panel != null)
+            //    {
+            //        panel.SetCurrentTool(_currentPaletteTool);
+            //    }
+            //}
             //show the proper tool properties
             tabControlToolProperties.TabPages.Clear();
-            switch (_currentPaletteTool)
+            switch (vectorTool)
             {
                 case VectorTool.Selecting:
                     tabControlToolProperties.TabPages.Add(tabPageSelect);
@@ -544,9 +550,10 @@ namespace VPaint
                     tabControlToolProperties.TabPages.Add(tabPageScissor);
                     break;
             }
+            VectorToolController.CurrentVectorTool = vectorTool;
         }
 
-        private void ApplyRadioEffect(object sender)
+        private void ApplyToolStripRadioEffect(object sender)
         {
             foreach (ToolStripButton item in ((ToolStripButton)sender).GetCurrentParent().Items)
             {
@@ -618,13 +625,6 @@ namespace VPaint
                 v.Invalidate();
             }
             
-        }
-
-        private void toolStripButtonScissors_Click(object sender, EventArgs e)
-        {
-            ApplyRadioEffect(sender);
-            _currentPaletteTool = VectorTool.Scissors;
-            SetDrawingTool();
         }
 
         private void MainForm_KeyDown(object sender, KeyEventArgs e)

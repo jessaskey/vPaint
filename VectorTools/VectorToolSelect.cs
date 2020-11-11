@@ -19,19 +19,19 @@ namespace VPaint.Tools
 
     public class VectorToolSelect : IVectorTool
     {
-        private VectorPanel _vectorPanel = null;
         private SelectToolState _currentToolState = SelectToolState.Idle;
         private Point _selectedPoint = Point.Empty;
         private Point _dragStart = Point.Empty;
-
-        public VectorToolSelect(VectorPanel vectorPanel)
-        {
-            _vectorPanel = vectorPanel;
-        }
+        private Point _currentPosition = Point.Empty;
 
         public Point DragStart
         {
             get { return _dragStart; }
+        }
+
+        public Point CurrentPosition
+        {
+            get { return _currentPosition; }
         }
 
         public DragShape DragShape
@@ -47,18 +47,18 @@ namespace VPaint.Tools
                 {
                     case SelectToolState.Idle:
                     case SelectToolState.Selected:
-                        List<VectorPoint> hitVectorPoint = _vectorPanel.HitTest(hitPoint, false, false);
+                        List<VectorPoint> hitVectorPoint = VectorToolController.VectorPanel.HitTest(hitPoint, false, false);
                         //if any of the hit items are not selected already, then we have a miss
-                        bool miss = hitVectorPoint.Where(p => !p.Selected).Count() > 0;
+                        bool miss = hitVectorPoint.Count() == 0 || hitVectorPoint.Where(p => !p.Selected).Count() > 0;
                         if ((modifierKeys & Keys.Control) == Keys.None && miss)
                         {
-                            _vectorPanel.ClearAllSelections();
+                            VectorToolController.VectorPanel.ClearAllSelections();
                         }
 
                         if (!miss)
                         {
                             //mark all the points original locations because we may be moving next
-                            _vectorPanel.SaveOriginalPoints();
+                            VectorToolController.VectorPanel.SaveOriginalPoints();
                             _currentToolState = SelectToolState.Moving;
                             _dragStart = hitPoint;
                         }
@@ -66,21 +66,21 @@ namespace VPaint.Tools
                 }
                 //if (_currentToolState == SelectToolState.Idle)
                 //{
-                    //if '
-                    //(Control.ModifierKeys & Keys.Shift) != Keys.None
-                    ///{
-                        //force select
-                    
-                    //}
-                    //else
-                    //{
-                    //    //are we at the current selected point? If so we are moving the point
-                    //    if (_selectedPoint != Point.Empty && _selectedPoint.X == snapPoint.X && _selectedPoint.Y == snapPoint.Y)
-                    //    {
-                    //        _currentToolState = SelectToolState.Moving;
-                    //        Cursor.Current = Cursors.Arrow;
-                    //    }
-                    //}
+                //if '
+                //(Control.ModifierKeys & Keys.Shift) != Keys.None
+                ///{
+                //force select
+
+                //}
+                //else
+                //{
+                //    //are we at the current selected point? If so we are moving the point
+                //    if (_selectedPoint != Point.Empty && _selectedPoint.X == snapPoint.X && _selectedPoint.Y == snapPoint.Y)
+                //    {
+                //        _currentToolState = SelectToolState.Moving;
+                //        Cursor.Current = Cursors.Arrow;
+                //    }
+                //}
                 //}
                 //else
                 //{
@@ -89,7 +89,7 @@ namespace VPaint.Tools
                 //    _dragStart = Point.Empty;
                 //    Cursor.Current = Cursors.Default;
                 //}
-                _vectorPanel.RedrawControl();
+                VectorToolController.VectorPanel.RedrawControl();
             }
             //else if (e.Button == MouseButtons.Right)
             //{
@@ -109,7 +109,7 @@ namespace VPaint.Tools
             switch (_currentToolState)
             {
                 case SelectToolState.Selected:
-                    List<VectorPoint> hitVectorPoints = _vectorPanel.HitTest(hitPoint, true, false);
+                    List<VectorPoint> hitVectorPoints = VectorToolController.VectorPanel.HitTest(hitPoint, true, false);
                     if (hitVectorPoints.Count > 0)
                     {
                         //move cursor
@@ -134,7 +134,7 @@ namespace VPaint.Tools
                             int yDif = e.Y - _dragStart.Y;
                             if (xDif != 0 || yDif != 0)
                             {
-                                _vectorPanel.MoveSelectedPointsRelative(new Point(xDif, yDif));
+                                VectorToolController.VectorPanel.MoveSelectedPointsRelative(new Point(xDif, yDif));
                             }
                             //if ((Control.ModifierKeys & Keys.Shift) != Keys.None)
                             //{
@@ -154,7 +154,7 @@ namespace VPaint.Tools
                             //    }
                             //}
                         }
-                        _vectorPanel.RedrawControl();
+                        VectorToolController.VectorPanel.RedrawControl();
                         break;
                 }
             }
@@ -166,24 +166,24 @@ namespace VPaint.Tools
                 //latest mouse snap point
                 if (_selectedPoint != Point.Empty)
                 {
-                    var startPointVectors = _vectorPanel.GetDrawing().Vectors.Where(v => v.Start.Point.Matches(_selectedPoint));
+                    var startPointVectors = VectorToolController.VectorPanel.GetDrawing().Vectors.Where(v => v.Start.Point.Matches(_selectedPoint));
                     foreach (Vector v in startPointVectors)
                     {
                         v.Start.Point = hitPoint;
                     }
-                    var endPointVectors = _vectorPanel.GetDrawing().Vectors.Where(v => v.End.Point.Matches(_selectedPoint));
+                    var endPointVectors = VectorToolController.VectorPanel.GetDrawing().Vectors.Where(v => v.End.Point.Matches(_selectedPoint));
                     foreach (Vector v in endPointVectors)
                     {
                         v.End.Point = hitPoint;
                     }
                     _selectedPoint = hitPoint;
                 }
-                _vectorPanel.RedrawControl();
+                VectorToolController.VectorPanel.RedrawControl();
             }
             else if (_currentToolState == SelectToolState.Idle)
             {
                 Cursor.Current = Cursors.Default;
-                _vectorPanel.RedrawControl();
+                VectorToolController.VectorPanel.RedrawControl();
             }
             else
             {
@@ -205,8 +205,8 @@ namespace VPaint.Tools
             {
                 currentVector = new Size(hitPoint.X - _dragStart.X, hitPoint.Y - _dragStart.Y);
             }
-            Point relativePoint = new Point(hitPoint.X - _vectorPanel.GetDrawing().CenterPoint.X, hitPoint.Y - _vectorPanel.GetDrawing().CenterPoint.Y);
-            _vectorPanel.OnReportCoordinates?.Invoke(hitPoint, relativePoint, currentVector);
+            Point relativePoint = new Point(hitPoint.X - VectorToolController.VectorPanel.GetDrawing().CenterPoint.X, hitPoint.Y - VectorToolController.VectorPanel.GetDrawing().CenterPoint.Y);
+            VectorToolController.VectorPanel.OnReportCoordinates?.Invoke(hitPoint, relativePoint, currentVector);
         }
 
         public void MouseUp(object sender, MouseEventArgs e, Point hitPoint, Keys modifierKeys)
@@ -220,7 +220,7 @@ namespace VPaint.Tools
                     case SelectToolState.Idle:
                         //select all vectors in rectangle
                         Rectangle rect = new Rectangle(_dragStart, new Size(hitPoint.X - _dragStart.X, hitPoint.Y - _dragStart.Y));
-                        foreach (Vector v in _vectorPanel.GetDrawing().Vectors)
+                        foreach (Vector v in VectorToolController.VectorPanel.GetDrawing().Vectors)
                         {
                             v.Start.Selected = rect.Contains(v.Start.Point);
                             v.End.Selected = rect.Contains(v.End.Point);
@@ -235,7 +235,7 @@ namespace VPaint.Tools
                     case SelectToolState.Idle:
                     case SelectToolState.Selected:
                         //if matched, then add
-                        List<VectorPoint> hitVectorPoints = _vectorPanel.HitTest(hitPoint, false, true);
+                        List<VectorPoint> hitVectorPoints = VectorToolController.VectorPanel.HitTest(hitPoint, false, true);
                         if (hitVectorPoints.Count > 0)
                         {
                             _currentToolState = SelectToolState.Selected;
@@ -254,7 +254,7 @@ namespace VPaint.Tools
                         break;
                 }
             }
-            _vectorPanel.RedrawControl();
+            VectorToolController.VectorPanel.RedrawControl();
         }
 
         public void KeyDown(object sender, KeyEventArgs e)
@@ -263,8 +263,8 @@ namespace VPaint.Tools
             {
                 _dragStart = Point.Empty;
                 _currentToolState = SelectToolState.Idle;
-                _vectorPanel.ClearAllSelections();
-                _vectorPanel.RedrawControl();
+                VectorToolController.VectorPanel.ClearAllSelections();
+                VectorToolController.VectorPanel.RedrawControl();
             }
         }
 

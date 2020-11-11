@@ -34,12 +34,10 @@ namespace VPaint
         private int _editDotSize = 4;
         private int _gridSize = 10;
         private int _gridDotSize = 1;
-        private Point _lastMouseSnap = Point.Empty;
+        //private Point _lastMouseSnap = Point.Empty;
         //private float _zoom = 1f;
         private int _vectorWidth = 1;
         private bool _showHiddenVectors = false;
-
-        private VectorToolController _toolController;
 
         private Drawing _drawing = null;
         private string _currentDrawingPath = "";
@@ -57,7 +55,7 @@ namespace VPaint
             BackColor = Color.Black;
             _drawing = drawing;
             _vectorWidth = Globals.vectorWidth;
-            _toolController = new VectorToolController(this);
+            //_toolController = new VectorToolController(this);
 
             System.Reflection.PropertyInfo aProp = typeof(System.Windows.Forms.Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             aProp.SetValue(panel, true, null);
@@ -78,10 +76,6 @@ namespace VPaint
         {
             get { return _showGrid; }
             set { _showGrid = value; }
-        }
-        public void SetCurrentTool(VectorTool tool)
-        {
-            _toolController.CurrentVectorTool = tool;
         }
 
         public Drawing GetDrawing()
@@ -254,101 +248,128 @@ namespace VPaint
             List<VectorPoint> hitVectorPoints = new List<VectorPoint>();
             foreach (Vector v in _drawing.Vectors)
             {
-                if ((v.Start.Selected && v.End.Selected && selectedOnly) || !selectedOnly)
+                //test points first...
+                if ((v.Start.Selected && selectedOnly) || !selectedOnly)
                 {
-                    //test this vector line for a hit
-                    Point p1 = new Point(Math.Min(v.Start.Point.X, v.End.Point.X), Math.Min(v.Start.Point.Y, v.End.Point.Y));
-                    Point p2 = new Point(Math.Max(v.Start.Point.X, v.End.Point.X), Math.Max(v.Start.Point.Y, v.End.Point.Y));
-                    bool vectorHit = adjustedHitPoint.X >= (p1.X - tolerance) 
-                                        && adjustedHitPoint.X <= (p2.X + tolerance) 
-                                        && adjustedHitPoint.Y >= (p1.Y - tolerance) 
-                                        && adjustedHitPoint.Y <= (p2.Y + tolerance);
-
-                    bool graphicsHit = false;
-                    if (vectorHit)
+                    if (v.Start.Point.IsWithinCircle(adjustedHitPoint, tolerance / 2))
                     {
-                        using (GraphicsPath gp = new GraphicsPath())
+                        hitVectorPoints.Add(v.Start);
+                        if (selectOnHit)
                         {
-                            gp.AddLine(v.Start.Point, v.End.Point);
-                            if (gp.IsOutlineVisible(adjustedHitPoint, hitPen))
-                            {
-                                graphicsHit = true;
-                                //hit, add our points to the hit list
-                                hitVectorPoints.Add(v.Start);
-                                hitVectorPoints.Add(v.End);
-                                if (selectOnHit)
-                                {
-                                    //select both start and end
-                                    v.Start.Selected = true;
-                                    v.End.Selected = true;
-                                }
-                                //find any other vectors that have these points as well..
-                                foreach(Vector otherVector in _drawing.Vectors.Where(ov => ov.Id != v.Id))
-                                {
-                                    if (v.Start.Point.Matches(otherVector.Start.Point))
-                                    {
-                                        hitVectorPoints.Add(otherVector.Start);
-                                        if (selectOnHit)
-                                        {
-                                            otherVector.Start.Selected = true; ;
-                                        }
-                                    }
-                                    if (v.Start.Point.Matches(otherVector.End.Point))
-                                    {
-                                        hitVectorPoints.Add(otherVector.End);
-                                        if (selectOnHit)
-                                        {
-                                            otherVector.End.Selected = true; ;
-                                        }
-                                    }
-                                    if (v.End.Point.Matches(otherVector.End.Point))
-                                    {
-                                        hitVectorPoints.Add(otherVector.End);
-                                        if (selectOnHit)
-                                        {
-                                            otherVector.End.Selected = true;
-                                        }
-                                    }
-                                    if (v.End.Point.Matches(otherVector.End.Point))
-                                    {
-                                        hitVectorPoints.Add(otherVector.End);
-                                        if (selectOnHit)
-                                        {
-                                            otherVector.End.Selected = true; ;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (vectorHit && graphicsHit)
-                    {
-                        //test points individually here
-                        if (v.Start.Point.IsWithinCircle(adjustedHitPoint, tolerance / 2))
-                        {
-                            hitVectorPoints.Add(v.Start);
-                            if (selectOnHit)
-                            {
-                                v.Start.Selected = true;
-                            }
-                        }
-                        else
-                        {
-                            //for now, assume that if start is hit, then end cant be hit. This might
-                            //cause an issue down the road if the vector is shorter than the tolerance
-                            //but for now, lets leave it.
-                            if (v.End.Point.IsWithinCircle(adjustedHitPoint, tolerance / 2))
-                            {
-                                hitVectorPoints.Add(v.End);
-                                if (selectOnHit)
-                                {
-                                    v.End.Selected = true;
-                                }
-                            }
+                            v.Start.Selected = true;
                         }
                     }
                 }
+                if ((v.End.Selected && selectedOnly) || !selectedOnly)
+                {
+                    if (v.End.Point.IsWithinCircle(adjustedHitPoint, tolerance / 2))
+                    {
+                        hitVectorPoints.Add(v.End);
+                        if (selectOnHit)
+                        {
+                            v.End.Selected = true;
+                        }
+                    }
+                }
+            }
+            if (hitVectorPoints.Count == 0) {
+                foreach (Vector v in _drawing.Vectors)
+                {
+                    if ((v.Start.Selected && v.End.Selected && selectedOnly) || !selectedOnly)
+                    {
+                        //test this vector line for a hit
+                        Point p1 = new Point(Math.Min(v.Start.Point.X, v.End.Point.X), Math.Min(v.Start.Point.Y, v.End.Point.Y));
+                        Point p2 = new Point(Math.Max(v.Start.Point.X, v.End.Point.X), Math.Max(v.Start.Point.Y, v.End.Point.Y));
+                        bool vectorHit = adjustedHitPoint.X >= (p1.X - tolerance)
+                                            && adjustedHitPoint.X <= (p2.X + tolerance)
+                                            && adjustedHitPoint.Y >= (p1.Y - tolerance)
+                                            && adjustedHitPoint.Y <= (p2.Y + tolerance);
 
+                        bool graphicsHit = false;
+                        if (vectorHit)
+                        {
+                            using (GraphicsPath gp = new GraphicsPath())
+                            {
+                                gp.AddLine(v.Start.Point, v.End.Point);
+                                if (gp.IsOutlineVisible(adjustedHitPoint, hitPen))
+                                {
+                                    graphicsHit = true;
+                                    //hit, add our points to the hit list
+                                    hitVectorPoints.Add(v.Start);
+                                    hitVectorPoints.Add(v.End);
+                                    if (selectOnHit)
+                                    {
+                                        //select both start and end
+                                        v.Start.Selected = true;
+                                        v.End.Selected = true;
+                                    }
+                                    //find any other vectors that have these points as well..
+                                    foreach (Vector otherVector in _drawing.Vectors.Where(ov => ov.Id != v.Id))
+                                    {
+                                        if (v.Start.Point.Matches(otherVector.Start.Point))
+                                        {
+                                            hitVectorPoints.Add(otherVector.Start);
+                                            if (selectOnHit)
+                                            {
+                                                otherVector.Start.Selected = true; ;
+                                            }
+                                        }
+                                        if (v.Start.Point.Matches(otherVector.End.Point))
+                                        {
+                                            hitVectorPoints.Add(otherVector.End);
+                                            if (selectOnHit)
+                                            {
+                                                otherVector.End.Selected = true; ;
+                                            }
+                                        }
+                                        if (v.End.Point.Matches(otherVector.Start.Point))
+                                        {
+                                            hitVectorPoints.Add(otherVector.Start);
+                                            if (selectOnHit)
+                                            {
+                                                otherVector.Start.Selected = true;
+                                            }
+                                        }
+                                        if (v.End.Point.Matches(otherVector.End.Point))
+                                        {
+                                            hitVectorPoints.Add(otherVector.End);
+                                            if (selectOnHit)
+                                            {
+                                                otherVector.End.Selected = true; ;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        //if (vectorHit && graphicsHit)
+                        //{
+                        //    //test points individually here
+                        //    if (v.Start.Point.IsWithinCircle(adjustedHitPoint, tolerance / 2))
+                        //    {
+                        //        hitVectorPoints.Add(v.Start);
+                        //        if (selectOnHit)
+                        //        {
+                        //            v.Start.Selected = true;
+                        //        }
+                        //    }
+                        //    else
+                        //    {
+                        //        //for now, assume that if start is hit, then end cant be hit. This might
+                        //        //cause an issue down the road if the vector is shorter than the tolerance
+                        //        //but for now, lets leave it.
+                        //        if (v.End.Point.IsWithinCircle(adjustedHitPoint, tolerance / 2))
+                        //        {
+                        //            hitVectorPoints.Add(v.End);
+                        //            if (selectOnHit)
+                        //            {
+                        //                v.End.Selected = true;
+                        //            }
+                        //        }
+                        //    }
+                        //}
+                    }
+                }
             }
             return hitVectorPoints;
         }
@@ -398,7 +419,7 @@ namespace VPaint
             else
             {
                 //if not pass through to current tool
-                _toolController.KeyDown(sender, e);
+                VectorToolController.KeyDown(sender, e);
             }
         }
 
@@ -588,19 +609,19 @@ namespace VPaint
                 }
             }
 
-            if (_toolController.DragStart != Point.Empty)
+            if (VectorToolController.DragStart != Point.Empty)
             {
                 //e.Graphics.FillRectangle(Brushes.White, _dragStart.X-(_editDotSize/2), _dragStart.Y-(_editDotSize/2), _editDotSize, _editDotSize);
-                switch (_toolController.DragShape)
+                switch (VectorToolController.DragShape)
                 {
                     case DragShape.Line:
                         //draw a line from where the first point is to where the mouse is
-                        e.Graphics.DrawLine(_editPen, _toolController.DragStart, _lastMouseSnap);
+                        e.Graphics.DrawLine(_editPen, VectorToolController.DragStart, VectorToolController.CurrentPosition);
                         break;
                     case DragShape.Rectangle:
                         Pen selectPen = new Pen(Color.LightYellow, 1);
                         selectPen.DashStyle = DashStyle.Dash;
-                        e.Graphics.DrawRectangle(selectPen, GetRectangle(_toolController.DragStart, _lastMouseSnap));
+                        e.Graphics.DrawRectangle(selectPen, GetRectangle(VectorToolController.DragStart, VectorToolController.CurrentPosition));
                         break;
                 }
 
@@ -650,21 +671,20 @@ namespace VPaint
         private void pictureBox_MouseDown(object sender, MouseEventArgs e)
         {
             //Point snapLocation = GetSnapPoint(e.Location);
-            _toolController.MouseDown(sender, e, e.Location, Control.ModifierKeys);
+            VectorToolController.MouseDown(sender, e, e.Location, Control.ModifierKeys);
         }
 
         private void pictureBox_MouseMove(object sender, MouseEventArgs e)
         {
             Cursor.Current = Cursors.Default;
             //_lastMouseSnap = GetSnapPoint(e.Location);
-            _toolController.MouseMove(sender, e, e.Location, Control.ModifierKeys);
-
+            VectorToolController.MouseMove(sender, e, e.Location, Control.ModifierKeys);
         }
 
         private void pictureBox_MouseUp(object sender, MouseEventArgs e)
         {
             //_lastMouseSnap = GetSnapPoint(e.Location);
-            _toolController.MouseUp(sender, e, e.Location, Control.ModifierKeys);
+            VectorToolController.MouseUp(sender, e, e.Location, Control.ModifierKeys);
         }
 
         private void scaledPictureBox_Resize(object sender, EventArgs e)

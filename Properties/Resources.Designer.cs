@@ -141,6 +141,16 @@ namespace VPaint.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] pencil_003_16xMD {
+            get {
+                object obj = ResourceManager.GetObject("pencil_003_16xMD", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap SaveCollection {

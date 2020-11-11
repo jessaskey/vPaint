@@ -17,19 +17,19 @@ namespace VPaint.Tools
     }
     public class VectorToolScissor : IVectorTool
     {
-        private VectorPanel _vectorPanel = null;
         private ScissorToolState _currentToolState = ScissorToolState.Idle;
         private Point _selectedPoint = Point.Empty;
         private Point _dragStart = Point.Empty;
-
-        public VectorToolScissor(VectorPanel vectorPanel)
-        {
-            _vectorPanel = vectorPanel;
-        }
+        private Point _currentPosition = Point.Empty;
 
         public Point DragStart
         {
             get { return _dragStart; }
+        }
+
+        public Point CurrentPosition
+        {
+            get { return _currentPosition; }
         }
 
         public DragShape DragShape
@@ -48,7 +48,7 @@ namespace VPaint.Tools
                     //draw a line for cutting
                     _currentToolState = ScissorToolState.Defining;
                 }
-                _vectorPanel.RedrawControl();
+                VectorToolController.VectorPanel.RedrawControl();
             }
         }
 
@@ -68,24 +68,24 @@ namespace VPaint.Tools
                         {
                             if (xDif > 0)
                             {
-                                _vectorPanel.OnUpdateCursor?.Invoke(new Point(_dragStart.X, e.Y));
+                                VectorToolController.VectorPanel.OnUpdateCursor?.Invoke(new Point(_dragStart.X, e.Y));
                             }
                         }
                         else
                         {
                             if (yDif > 0)
                             {
-                                _vectorPanel.OnUpdateCursor?.Invoke(new Point(e.X, _dragStart.Y));
+                                VectorToolController.VectorPanel.OnUpdateCursor?.Invoke(new Point(e.X, _dragStart.Y));
                             }
                         }
                     }
                 }
-                _vectorPanel.RedrawControl();
+                VectorToolController.VectorPanel.RedrawControl();
             }
             else if (_currentToolState == ScissorToolState.Idle)
             {
                 Cursor.Current = Cursors.Default;
-                _vectorPanel.RedrawControl();
+                VectorToolController.VectorPanel.RedrawControl();
             }
 
             Size currentVector = new Size(0, 0);
@@ -93,8 +93,8 @@ namespace VPaint.Tools
             {
                 currentVector = new Size(snapPoint.X - _dragStart.X, snapPoint.Y - _dragStart.Y);
             }
-            Point relativePoint = new Point(snapPoint.X - _vectorPanel.GetDrawing().CenterPoint.X, snapPoint.Y - _vectorPanel.GetDrawing().CenterPoint.Y);
-            _vectorPanel.OnReportCoordinates?.Invoke(snapPoint, relativePoint, currentVector);
+            Point relativePoint = new Point(snapPoint.X - VectorToolController.VectorPanel.GetDrawing().CenterPoint.X, snapPoint.Y - VectorToolController.VectorPanel.GetDrawing().CenterPoint.Y);
+            VectorToolController.VectorPanel.OnReportCoordinates?.Invoke(snapPoint, relativePoint, currentVector);
 
         }
 
@@ -108,7 +108,7 @@ namespace VPaint.Tools
                 Dictionary<Vector, VectorIntersectionInfo> leftSideVectors = new Dictionary<Vector, VectorIntersectionInfo>();
                 Dictionary<Vector, VectorIntersectionInfo> intersectingVectors = new Dictionary<Vector, VectorIntersectionInfo>();
 
-                foreach (Vector v in _vectorPanel.GetDrawing().Vectors)
+                foreach (Vector v in VectorToolController.VectorPanel.GetDrawing().Vectors)
                 {
                     VectorIntersectionInfo info = VectorUtility.FindIntersection(scissorVector, v);
                     if (info.SegmentsIntersect)
@@ -166,7 +166,7 @@ namespace VPaint.Tools
 
                         foreach (var vi in minorityVectors)
                         {
-                            _vectorPanel.GetDrawing().Vectors.Remove(vi.Key);
+                            VectorToolController.VectorPanel.GetDrawing().Vectors.Remove(vi.Key);
                         }
 
                         KeyValuePair<Vector, VectorIntersectionInfo> leadingVector = intersectingVectors.ElementAt(0);
@@ -218,8 +218,8 @@ namespace VPaint.Tools
                         }
                         newVector.Start.Point = leadingVector.Key.End.Point;
                         newVector.End.Point = laggingVector.Key.Start.Point;
-                        _vectorPanel.GetDrawing().Vectors.Insert(_vectorPanel.GetDrawing().Vectors.IndexOf(leadingVector.Key) + 1, newVector);
-                        _vectorPanel.RedrawControl();
+                        VectorToolController.VectorPanel.GetDrawing().Vectors.Insert(VectorToolController.VectorPanel.GetDrawing().Vectors.IndexOf(leadingVector.Key) + 1, newVector);
+                        VectorToolController.VectorPanel.RedrawControl();
                     }
                 }
             }
@@ -232,8 +232,8 @@ namespace VPaint.Tools
             {
                 _dragStart = Point.Empty;
                 _currentToolState = ScissorToolState.Idle;
-                _vectorPanel.ClearAllSelections();
-                _vectorPanel.RedrawControl();
+                VectorToolController.VectorPanel.ClearAllSelections();
+                VectorToolController.VectorPanel.RedrawControl();
             }
         }
     }

@@ -16,6 +16,7 @@ namespace VPaint
         void KeyDown(object sender, KeyEventArgs e);
 
         Point DragStart { get; }
+        Point CurrentPosition { get; }
         DragShape DragShape { get; }
     }
 }
