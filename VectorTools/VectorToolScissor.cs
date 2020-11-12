@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,6 @@ namespace VPaint.Tools
     {
         Idle,
         Defining,
-        Defined,
     }
     public class VectorToolScissor : IVectorTool
     {
@@ -21,6 +21,7 @@ namespace VPaint.Tools
         private Point _selectedPoint = Point.Empty;
         private Point _dragStart = Point.Empty;
         private Point _currentPosition = Point.Empty;
+        private Pen _pen = new Pen(Brushes.White, 1) { DashStyle = DashStyle.Dash };
 
         public Point DragStart
         {
@@ -37,193 +38,105 @@ namespace VPaint.Tools
             get { return DragShape.Line; }
         }
 
+        public Pen Pen
+        {
+            get { return _pen; }
+        }
+
         public void MouseDown(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
         {
-            if (e.Button == MouseButtons.Left)
-            {
-                if (_currentToolState == ScissorToolState.Idle)
-                {
-                    //start draw a line mode for tool
-                    _dragStart = snapPoint;
-                    //draw a line for cutting
-                    _currentToolState = ScissorToolState.Defining;
-                }
-                VectorToolController.VectorPanel.RedrawControl();
-            }
+            //if (e.Button == MouseButtons.Left)
+            //{
+            //    switch (_currentToolState)
+            //    {
+            //        case ScissorToolState.Idle:
+            //            //start draw a line mode for tool
+            //            _dragStart = snapPoint;
+            //            break;
+            //    }
+            //    VectorToolController.VectorPanel.RedrawControl();
+            //}
         }
 
 
-        public void MouseMove(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
+        public void MouseMove(object sender, MouseEventArgs e, Point hitPoint, Keys modifierKeys)
         {
-            if (_currentToolState == ScissorToolState.Defining)
+            switch (_currentToolState)
             {
-                Cursor.Current = Cursors.Cross;
-                if (_dragStart != Point.Empty)
-                {
-                    int xDif = Math.Abs(_dragStart.X - e.X);
-                    int yDif = Math.Abs(_dragStart.Y - e.Y);
-                    if ((Control.ModifierKeys & Keys.Shift) != Keys.None)
+                case ScissorToolState.Idle:
+                    Cursor.Current = Cursors.Default;
+                    break;
+                case ScissorToolState.Defining:
+                    Cursor.Current = Cursors.Cross;
+                    if (_dragStart != Point.Empty)
                     {
-                        if (xDif <= yDif)
-                        {
-                            if (xDif > 0)
-                            {
-                                VectorToolController.VectorPanel.OnUpdateCursor?.Invoke(new Point(_dragStart.X, e.Y));
-                            }
-                        }
-                        else
-                        {
-                            if (yDif > 0)
-                            {
-                                VectorToolController.VectorPanel.OnUpdateCursor?.Invoke(new Point(e.X, _dragStart.Y));
-                            }
-                        }
+                        _currentPosition = hitPoint;
                     }
-                }
-                VectorToolController.VectorPanel.RedrawControl();
+                    break;
             }
-            else if (_currentToolState == ScissorToolState.Idle)
-            {
-                Cursor.Current = Cursors.Default;
-                VectorToolController.VectorPanel.RedrawControl();
-            }
+            VectorToolController.VectorPanel.RedrawControl();
+
+
 
             Size currentVector = new Size(0, 0);
             if (_dragStart != Point.Empty)
             {
-                currentVector = new Size(snapPoint.X - _dragStart.X, snapPoint.Y - _dragStart.Y);
+                currentVector = new Size(hitPoint.X - _dragStart.X, hitPoint.Y - _dragStart.Y);
             }
-            Point relativePoint = new Point(snapPoint.X - VectorToolController.VectorPanel.GetDrawing().CenterPoint.X, snapPoint.Y - VectorToolController.VectorPanel.GetDrawing().CenterPoint.Y);
-            VectorToolController.VectorPanel.OnReportCoordinates?.Invoke(snapPoint, relativePoint, currentVector);
+            Point relativePoint = new Point(hitPoint.X - VectorToolController.VectorPanel.GetDrawing().CenterPoint.X, hitPoint.Y - VectorToolController.VectorPanel.GetDrawing().CenterPoint.Y);
+            VectorToolController.VectorPanel.OnReportCoordinates?.Invoke(hitPoint, relativePoint, currentVector);
+        }
+
+        public void MouseUp(object sender, MouseEventArgs e, Point hitPoint, Keys modifierKeys)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                switch (_currentToolState)
+                {
+                    case ScissorToolState.Idle:
+                        _dragStart = hitPoint;
+                        _currentToolState = ScissorToolState.Defining;
+                        break;
+                    case ScissorToolState.Defining:
+                        //adjust to vector coordinates
+
+                        Vector scissorVector = new Vector(_dragStart, hitPoint);
+                        CutVectors(scissorVector);
+                        _currentToolState = ScissorToolState.Idle;
+                        break;
+                }
+            }
 
         }
 
-        public void MouseUp(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
+        private void CutVectors(Vector scissorVector)
         {
-            if (e.Button == MouseButtons.Left && _currentToolState == ScissorToolState.Defining)
+            //find all vectors on each side of line
+            Dictionary<Vector, VectorIntersectionInfo> rightSideVectors = new Dictionary<Vector, VectorIntersectionInfo>();
+            Dictionary<Vector, VectorIntersectionInfo> leftSideVectors = new Dictionary<Vector, VectorIntersectionInfo>();
+            Dictionary<Vector, VectorIntersectionInfo> intersectingVectors = new Dictionary<Vector, VectorIntersectionInfo>();
+            VectorToolController.VectorPanel.CategorizeVectors(scissorVector, intersectingVectors, leftSideVectors, rightSideVectors);
+
+            //which side has the most vectors
+            if (intersectingVectors.Count == 0)
             {
-                Vector scissorVector = new Vector(_dragStart, snapPoint);
-                //find all vectors on each side of line
-                Dictionary<Vector, VectorIntersectionInfo> rightSideVectors = new Dictionary<Vector, VectorIntersectionInfo>();
-                Dictionary<Vector, VectorIntersectionInfo> leftSideVectors = new Dictionary<Vector, VectorIntersectionInfo>();
-                Dictionary<Vector, VectorIntersectionInfo> intersectingVectors = new Dictionary<Vector, VectorIntersectionInfo>();
-
-                foreach (Vector v in VectorToolController.VectorPanel.GetDrawing().Vectors)
+                MessageBox.Show("Drawn line does not intersect any vectors. Do it again!");
+                _currentToolState = ScissorToolState.Idle;
+                _dragStart = Point.Empty;
+            }
+            else
+            {
+                if (intersectingVectors.Count != 2)
                 {
-                    VectorIntersectionInfo info = VectorUtility.FindIntersection(scissorVector, v);
-                    if (info.SegmentsIntersect)
-                    {
-                        intersectingVectors.Add(v, info);
-                    }
-                    else
-                    {
-                        //no intersection, which side
-                        //since no intersection, both points will be on the same side
-                        //just use Point1 then
-                        if (info.VectorStartSide == VectorIntersectionInfo.Side.Right)
-                        {
-                            rightSideVectors.Add(v, info);
-                        }
-                        else if (info.VectorStartSide == VectorIntersectionInfo.Side.Left)
-                        {
-                            leftSideVectors.Add(v, info);
-                        }
-                    }
-                }
-
-                //which side has the most vectors
-                if (intersectingVectors.Count == 0)
-                {
-                    MessageBox.Show("Drawn line does not intersect any vectors. Do it again!");
+                    MessageBox.Show("Scissor tool only supports cutting two vectors at a time. Do it again!");
                     _currentToolState = ScissorToolState.Idle;
                     _dragStart = Point.Empty;
                 }
                 else
                 {
-                    if (intersectingVectors.Count != 2)
-                    {
-                        MessageBox.Show("scissor tool only supports cutting two vectors at a time. Do it again!");
-                        _currentToolState = ScissorToolState.Idle;
-                        _dragStart = Point.Empty;
-                    }
-                    else
-                    {
-                        Dictionary<Vector, VectorIntersectionInfo> minorityVectors = rightSideVectors;
-                        Dictionary<Vector, VectorIntersectionInfo> majorityVectors = leftSideVectors;
-
-                        if (rightSideVectors.Count >= leftSideVectors.Count)
-                        {
-                            minorityVectors = leftSideVectors;
-                            majorityVectors = rightSideVectors;
-                        }
-
-                        //set a value for which 'side' the majority is on
-                        VectorIntersectionInfo.Side majoritySide = VectorIntersectionInfo.Side.Intersecting;
-                        if (majorityVectors.Count > 0)
-                        {
-                            majoritySide = majorityVectors.First().Value.VectorStartSide;
-                        }
-
-                        foreach (var vi in minorityVectors)
-                        {
-                            VectorToolController.VectorPanel.GetDrawing().Vectors.Remove(vi.Key);
-                        }
-
-                        KeyValuePair<Vector, VectorIntersectionInfo> leadingVector = intersectingVectors.ElementAt(0);
-                        KeyValuePair<Vector, VectorIntersectionInfo> laggingVector = intersectingVectors.ElementAt(1);
-
-                        //these are the vectors that need to be cut
-                        //which side is on the 'keep' side
-                        if (leadingVector.Value.VectorStartSide == majoritySide)
-                        {
-                            //trimmed vector will go from the start to the intersecting point
-                            leadingVector.Key.End.Point.X = (int)leadingVector.Value.ClosestPointOnVector2.X;
-                            leadingVector.Key.End.Point.Y = (int)leadingVector.Value.ClosestPointOnVector2.Y;
-                        }
-                        if (leadingVector.Value.VectorEndSide == majoritySide)
-                        {
-                            leadingVector.Key.Start.Point.X = (int)leadingVector.Value.ClosestPointOnVector2.X;
-                            leadingVector.Key.Start.Point.Y = (int)leadingVector.Value.ClosestPointOnVector2.Y;
-                        }
-                        //second vector
-                        if (laggingVector.Value.VectorStartSide == majoritySide)
-                        {
-                            //trimmed vector will go from the start to the intersecting point
-                            laggingVector.Key.End.Point.X = (int)laggingVector.Value.ClosestPointOnVector2.X;
-                            laggingVector.Key.End.Point.Y = (int)laggingVector.Value.ClosestPointOnVector2.Y;
-                        }
-                        if (laggingVector.Value.VectorEndSide == majoritySide)
-                        {
-                            laggingVector.Key.Start.Point.X = (int)laggingVector.Value.ClosestPointOnVector2.X;
-                            laggingVector.Key.Start.Point.Y = (int)laggingVector.Value.ClosestPointOnVector2.Y;
-                        }
-                        //intersecting vectors should now be trimmed
-                        //new vector will go from the intersecting point of this vector
-                        //to the intersecting point of the other vector
-                        Vector newVector = leadingVector.Key.Clone();
-                        switch (VectorToolSettings.ScissorCutLineColor)
-                        {
-                            case ScissorCutLineColor.LeadingVectorColor:
-                                newVector.Color = leadingVector.Key.Color;
-                                break;
-                            case ScissorCutLineColor.LaggingVectorColor:
-                                newVector.Color = laggingVector.Key.Color;
-                                break;
-                            case ScissorCutLineColor.Transparent:
-                                newVector.Color = Color.Transparent;
-                                break;
-                            case ScissorCutLineColor.DefaultColor:
-                                newVector.Color = MainForm.GetSelectedColor();
-                                break;
-                        }
-                        newVector.Start.Point = leadingVector.Key.End.Point;
-                        newVector.End.Point = laggingVector.Key.Start.Point;
-                        VectorToolController.VectorPanel.GetDrawing().Vectors.Insert(VectorToolController.VectorPanel.GetDrawing().Vectors.IndexOf(leadingVector.Key) + 1, newVector);
-                        VectorToolController.VectorPanel.RedrawControl();
-                    }
+                    VectorToolController.VectorPanel.CutVectors(intersectingVectors, leftSideVectors, rightSideVectors);
                 }
             }
-
         }
 
         public void KeyDown(object sender, KeyEventArgs e)

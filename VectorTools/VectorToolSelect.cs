@@ -23,6 +23,7 @@ namespace VPaint.Tools
         private Point _selectedPoint = Point.Empty;
         private Point _dragStart = Point.Empty;
         private Point _currentPosition = Point.Empty;
+        private Pen _pen = new Pen(Brushes.Yellow, 1);
 
         public Point DragStart
         {
@@ -37,6 +38,11 @@ namespace VPaint.Tools
         public DragShape DragShape
         {
             get { return DragShape.Rectangle; }
+        }
+
+        public Pen Pen
+        {
+            get { return _pen; }
         }
 
         public void MouseDown(object sender, MouseEventArgs e, Point hitPoint, Keys modifierKeys)

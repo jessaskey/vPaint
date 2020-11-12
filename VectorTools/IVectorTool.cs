@@ -18,5 +18,6 @@ namespace VPaint
         Point DragStart { get; }
         Point CurrentPosition { get; }
         DragShape DragShape { get; }
+        Pen Pen { get; }
     }
 }

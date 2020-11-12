@@ -98,5 +98,10 @@ namespace VPaint
             get { return _currentVectorToolObject != null ? _currentVectorToolObject.DragShape : DragShape.Line; }
         }
 
+        public static Pen Pen
+        {
+            get { return _currentVectorToolObject != null ? _currentVectorToolObject.Pen : Pens.Black; }
+        }
+
     }
 }

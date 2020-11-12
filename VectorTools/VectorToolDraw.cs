@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,6 +22,7 @@ namespace VPaint.Tools
         private Point _selectedPoint = Point.Empty;
         private Point _dragStart = Point.Empty;
         private Point _currentPosition = Point.Empty;
+        private Pen _pen = new Pen(Brushes.Yellow, 1);
 
         public Point DragStart
         {
@@ -37,6 +39,11 @@ namespace VPaint.Tools
             get { return DragShape.Line; }
         }
 
+        public Pen Pen
+        {
+            get { return _pen; }
+        }
+
         public void MouseDown(object sender, MouseEventArgs e, Point hitPoint, Keys modifierKeys)
         {
             if (e.Button == MouseButtons.Left)
@@ -47,11 +54,10 @@ namespace VPaint.Tools
                         //start draw a line mode for tool
                         _dragStart = hitPoint;
                         _currentPosition = hitPoint;
-
                         break;
                     case DrawToolState.Drawing:
                         //finished
-                        VectorToolController.VectorPanel.GetDrawing().Vectors.Add(new Vector(_dragStart, hitPoint, MainForm.GetSelectedColor()));
+                        VectorToolController.VectorPanel.CreateVector(_dragStart, _currentPosition, MainForm.GetSelectedColor()); //.GetDrawing().Vectors.Add(new Vector(_dragStart, hitPoint, MainForm.GetSelectedColor()));
                         _dragStart = hitPoint;
                         break;
                 }

@@ -29,7 +29,7 @@ namespace VPaint
         private bool _showGrid = true;
         private Brush _gridBrush = Brushes.White;
         private Brush _boundsBrush = Brushes.Gray;
-        private Pen _editPen = new Pen(Brushes.Yellow, 1);
+        //private Pen _editPen = new Pen(Brushes.Yellow, 1);
         private Pen _majorAxisPen = new Pen(Brushes.DimGray, 1);
         private int _editDotSize = 4;
         private int _gridSize = 10;
@@ -389,6 +389,15 @@ namespace VPaint
             }
         }
 
+        public void CreateVector(Point start, Point end, Color color)
+        {
+            Point centerPoint = new Point(panel.Width / 2, panel.Height / 2);
+            Point adjustedStart = start.Subtract(centerPoint).Divide(scaledPictureBox.Zoom);
+            Point adjustedEnd = end.Subtract(centerPoint).Divide(scaledPictureBox.Zoom);
+            Vector vector = new Vector(adjustedStart, adjustedEnd, color);
+            _drawing.Vectors.Add(vector);
+        }
+
         public new void KeyDown(object sender, KeyEventArgs e)
         {
             //does the vector panel want any keys?
@@ -609,19 +618,21 @@ namespace VPaint
                 }
             }
 
-            if (VectorToolController.DragStart != Point.Empty)
+            if (VectorToolController.DragStart != Point.Empty && VectorToolController.CurrentPosition != Point.Empty)
             {
+                Point adjustedStart = VectorToolController.DragStart.Divide(scaledPictureBox.Zoom);
+                Point adjustedEnd = VectorToolController.CurrentPosition.Divide(scaledPictureBox.Zoom);
                 //e.Graphics.FillRectangle(Brushes.White, _dragStart.X-(_editDotSize/2), _dragStart.Y-(_editDotSize/2), _editDotSize, _editDotSize);
                 switch (VectorToolController.DragShape)
                 {
                     case DragShape.Line:
                         //draw a line from where the first point is to where the mouse is
-                        e.Graphics.DrawLine(_editPen, VectorToolController.DragStart, VectorToolController.CurrentPosition);
+                        e.Graphics.DrawLine(VectorToolController.Pen, adjustedStart, adjustedEnd);
                         break;
                     case DragShape.Rectangle:
                         Pen selectPen = new Pen(Color.LightYellow, 1);
                         selectPen.DashStyle = DashStyle.Dash;
-                        e.Graphics.DrawRectangle(selectPen, GetRectangle(VectorToolController.DragStart, VectorToolController.CurrentPosition));
+                        e.Graphics.DrawRectangle(selectPen, GetRectangle(adjustedStart, adjustedEnd));
                         break;
                 }
 
@@ -690,6 +701,112 @@ namespace VPaint
         private void scaledPictureBox_Resize(object sender, EventArgs e)
         {
 
+        }
+
+        public void CategorizeVectors (Vector scissorVector, Dictionary<Vector, VectorIntersectionInfo> intersectingVectors, Dictionary<Vector, VectorIntersectionInfo> leftSideVectors, Dictionary<Vector, VectorIntersectionInfo> rightSideVectors)
+        {
+            //need to adjust our scissor vector
+            Point centerPoint = new Point(panel.Width / 2, panel.Height / 2);
+            scissorVector.Start.Point = scissorVector.Start.Point.Subtract(centerPoint).Divide(scaledPictureBox.Zoom);
+            scissorVector.End.Point = scissorVector.End.Point.Subtract(centerPoint).Divide(scaledPictureBox.Zoom);
+            foreach (Vector v in VectorToolController.VectorPanel.GetDrawing().Vectors)
+            {
+                VectorIntersectionInfo info = VectorUtility.FindIntersection(scissorVector, v);
+                if (info.SegmentsIntersect)
+                {
+                    intersectingVectors.Add(v, info);
+                }
+                else
+                {
+                    //no intersection, which side
+                    //since no intersection, both points will be on the same side
+                    //just use Point1 then
+                    if (info.VectorStartSide == VectorIntersectionInfo.Side.Right)
+                    {
+                        rightSideVectors.Add(v, info);
+                    }
+                    else if (info.VectorStartSide == VectorIntersectionInfo.Side.Left)
+                    {
+                        leftSideVectors.Add(v, info);
+                    }
+                }
+            }
+        }
+
+        public void CutVectors(Dictionary<Vector, VectorIntersectionInfo> intersectingVectors, Dictionary<Vector, VectorIntersectionInfo> leftSideVectors, Dictionary<Vector, VectorIntersectionInfo> rightSideVectors)
+        {
+            Dictionary<Vector, VectorIntersectionInfo> minorityVectors = rightSideVectors;
+            Dictionary<Vector, VectorIntersectionInfo> majorityVectors = leftSideVectors;
+
+            if (rightSideVectors.Count >= leftSideVectors.Count)
+            {
+                minorityVectors = leftSideVectors;
+                majorityVectors = rightSideVectors;
+            }
+
+            //set a value for which 'side' the majority is on
+            VectorIntersectionInfo.Side majoritySide = VectorIntersectionInfo.Side.Intersecting;
+            if (majorityVectors.Count > 0)
+            {
+                majoritySide = majorityVectors.First().Value.VectorStartSide;
+            }
+
+            foreach (var vi in minorityVectors)
+            {
+                VectorToolController.VectorPanel.GetDrawing().Vectors.Remove(vi.Key);
+            }
+
+            KeyValuePair<Vector, VectorIntersectionInfo> leadingVector = intersectingVectors.ElementAt(0);
+            KeyValuePair<Vector, VectorIntersectionInfo> laggingVector = intersectingVectors.ElementAt(1);
+
+            //these are the vectors that need to be cut
+            //which side is on the 'keep' side
+            if (leadingVector.Value.VectorStartSide == majoritySide)
+            {
+                //trimmed vector will go from the start to the intersecting point
+                leadingVector.Key.End.Point.X = (int)leadingVector.Value.ClosestPointOnVector2.X;
+                leadingVector.Key.End.Point.Y = (int)leadingVector.Value.ClosestPointOnVector2.Y;
+            }
+            if (leadingVector.Value.VectorEndSide == majoritySide)
+            {
+                leadingVector.Key.Start.Point.X = (int)leadingVector.Value.ClosestPointOnVector2.X;
+                leadingVector.Key.Start.Point.Y = (int)leadingVector.Value.ClosestPointOnVector2.Y;
+            }
+            //second vector
+            if (laggingVector.Value.VectorStartSide == majoritySide)
+            {
+                //trimmed vector will go from the start to the intersecting point
+                laggingVector.Key.End.Point.X = (int)laggingVector.Value.ClosestPointOnVector2.X;
+                laggingVector.Key.End.Point.Y = (int)laggingVector.Value.ClosestPointOnVector2.Y;
+            }
+            if (laggingVector.Value.VectorEndSide == majoritySide)
+            {
+                laggingVector.Key.Start.Point.X = (int)laggingVector.Value.ClosestPointOnVector2.X;
+                laggingVector.Key.Start.Point.Y = (int)laggingVector.Value.ClosestPointOnVector2.Y;
+            }
+            //intersecting vectors should now be trimmed
+            //new vector will go from the intersecting point of this vector
+            //to the intersecting point of the other vector
+            Vector newVector = leadingVector.Key.Clone();
+            switch (VectorToolSettings.ScissorCutLineColor)
+            {
+                case ScissorCutLineColor.LeadingVectorColor:
+                    newVector.Color = leadingVector.Key.Color;
+                    break;
+                case ScissorCutLineColor.LaggingVectorColor:
+                    newVector.Color = laggingVector.Key.Color;
+                    break;
+                case ScissorCutLineColor.Transparent:
+                    newVector.Color = Color.Transparent;
+                    break;
+                case ScissorCutLineColor.DefaultColor:
+                    newVector.Color = MainForm.GetSelectedColor();
+                    break;
+            }
+            newVector.Start.Point = leadingVector.Key.End.Point;
+            newVector.End.Point = laggingVector.Key.Start.Point;
+            _drawing.Vectors.Insert(VectorToolController.VectorPanel.GetDrawing().Vectors.IndexOf(leadingVector.Key) + 1, newVector);
+            RedrawControl();
         }
 
         public int MergePoints(int tolerance, bool countOnly, bool previewCandidates)
