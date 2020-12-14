@@ -12,7 +12,7 @@ namespace VPaint
     public class Drawing
     {
         private readonly ObservableCollection<Vector> _vectors = new ObservableCollection<Vector>();
-
+        private VectorCommandController _commandController = null;
         [XmlIgnore]
         public VectorCollectionChanged OnVectorCollectionChanged = null;
 
@@ -51,17 +51,17 @@ namespace VPaint
         public Drawing()
         {
             _vectors.CollectionChanged += vectors_CollectionChanged;
+            _commandController = new VectorCommandController(this);
             CenterPoint = new Point(Extents.Width / 2, Extents.Height / 2);
         }
 
         public Drawing(string fileName)
         {
             FileName = fileName;
-            _vectors.CollectionChanged += vectors_CollectionChanged; ;
+            _vectors.CollectionChanged += vectors_CollectionChanged;
+            _commandController = new VectorCommandController(this);
             CenterPoint = new Point(Extents.Width / 2, Extents.Height / 2);
         }
-
-        
 
         private void vectors_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
@@ -89,23 +89,23 @@ namespace VPaint
             }
         }
 
-        public List<Point> GetSelectedPoints()
+        public List<VectorPoint> GetSelectedPoints()
         {
-            List<Point> selectedPoints = new List<Point>();
+            List<VectorPoint> selectedPoints = new List<VectorPoint>();
             foreach(Vector v in _vectors)
             {
                 if (v.Start.Selected)
                 {
-                    if (selectedPoints.Where(p => p.X == v.Start.Point.X && p.Y == v.Start.Point.Y).Count() == 0)
+                    if (selectedPoints.Where(p => p.Point.Matches(v.Start.Point)).Count() == 0)
                     {
-                        selectedPoints.Add(v.Start.Point);
+                        selectedPoints.Add(v.Start);
                     }
                 }
                 if (v.End.Selected)
                 {
-                    if (selectedPoints.Where(p => p.X == v.End.Point.X && p.Y == v.End.Point.Y).Count() == 0)
+                    if (selectedPoints.Where(p => p.Point.Matches(v.End.Point)).Count() == 0)
                     {
-                        selectedPoints.Add(v.End.Point);
+                        selectedPoints.Add(v.End);
                     }
                 }
             }
@@ -144,6 +144,5 @@ namespace VPaint
             }
             return String.Join(" ", coords.ToArray());
         }
-
     }
 }

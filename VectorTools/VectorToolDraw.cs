@@ -122,7 +122,7 @@ namespace VPaint.Tools
             {
                 currentVector = new Size(hitPoint.X - _dragStart.X, hitPoint.Y - _dragStart.Y);
             }
-            Point relativePoint = new Point(hitPoint.X - VectorToolController.VectorPanel.GetDrawing().CenterPoint.X, hitPoint.Y - VectorToolController.VectorPanel.GetDrawing().CenterPoint.Y);
+            Point relativePoint = new Point(hitPoint.X - VectorToolController.VectorPanel.Drawing.CenterPoint.X, hitPoint.Y - VectorToolController.VectorPanel.Drawing.CenterPoint.Y);
             VectorToolController.VectorPanel.OnReportCoordinates?.Invoke(hitPoint, relativePoint, currentVector);
 
         }

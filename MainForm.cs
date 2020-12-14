@@ -26,18 +26,14 @@ namespace VPaint
             InitializeComponent();
             _reportCoordinates = new ReportCoordinatesDelegate(ReportCoordinates);
             //_updateCursor = new UpdateCursorDelegate(UpdateCursor);
-
-
             this.SetStyle(ControlStyles.DoubleBuffer | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
             this.UpdateStyles();
-
         }
 
 
         private void Form1_Load(object sender, EventArgs e)
         {
             toolStrip1.SuspendLayout();
-
             //add color picker to toolstrip
             _colorPicker = new ColorPicker();
             _colorPicker.AddStandardColors();
@@ -82,7 +78,6 @@ namespace VPaint
             ToolStripControlHost toolStripControlHostVectorWidth = new ToolStripControlHost(upDownVectorWidth);
             toolStripControlHostVectorWidth.Width = upDownVectorWidth.Width + 5;
             toolStrip1.Items.Insert(toolStrip1.Items.IndexOf(toolStripLabelVectorWidth) + 1, toolStripControlHostVectorWidth);
-
             toolStrip1.ResumeLayout();
 
             //open new drawing on startup
@@ -136,7 +131,7 @@ namespace VPaint
                 {
                     ListViewItem item = new ListViewItem(number.ToString());
                     item.SubItems.Add(v.ToString(drawing.CenterPoint));
-                    item.SubItems.Add(v.Color == Color.Transparent ? "Hidden" : "Visible");
+                    item.SubItems.Add(v.DisplayColor == Color.Transparent ? "Hidden" : "Visible");
                     item.Tag = v;
                     listViewVectors.Items.Add(item);
                     number++;
@@ -168,7 +163,7 @@ namespace VPaint
         {
             TabPage currentPage = tabControlImages.SelectedTab;
             VectorPanel vp = currentPage.Tag as VectorPanel;
-            return vp?.GetDrawing();
+            return vp?.Drawing;
         }
 
         public static Color GetSelectedColor()
@@ -197,7 +192,7 @@ namespace VPaint
                     VectorPanel vp = page.Tag as VectorPanel;
                     if (vp != null)
                     {
-                        Drawing d = vp.GetDrawing();
+                        Drawing d = vp.Drawing;
                         if (d != null)
                         {
                             if (d.FileName.ToLower() == fileName.ToLower())
@@ -250,6 +245,8 @@ namespace VPaint
                     v.Start.Selected = false;
                     v.End.Selected = false;
                 }
+                //temp fix for bug that was not updating the filename property after saving
+                drawing.FileName = Path.GetFileName(currentDrawingFileName);
                 EditDrawing(drawing);
                 file.Close();
             }
@@ -279,50 +276,54 @@ namespace VPaint
 
         private void toolStripButtonSave_Click(object sender, EventArgs e)
         {
-            SaveDrawing();
+            Drawing drawing = GetCurrentDrawing();
+            SaveDrawing(drawing);
         }
 
-        private void SaveDrawing()
+        private void toolStripButtonSaveAs_Click(object sender, EventArgs e)
+        {
+            Drawing drawing = GetCurrentDrawing();
+            SaveDrawingAs(drawing);
+        }
+
+        private void SaveDrawing(Drawing drawing)
         {
             VectorPanel vectorPanel = GetCurrentVectorPanel();
-            Drawing drawing = GetCurrentDrawing();
 
             if (vectorPanel != null && String.IsNullOrEmpty(vectorPanel.DrawingPath))
             {
-                
-
-                SaveFileDialog sd = new SaveFileDialog();
-                sd.Filter = "Atari Vector Drawing | *.avd";
-
-                DialogResult dr = sd.ShowDialog();
-                if (dr == System.Windows.Forms.DialogResult.OK)
-                {
-
-                    System.Xml.Serialization.XmlSerializer writer = new System.Xml.Serialization.XmlSerializer(typeof(Drawing));
-                    System.IO.FileStream file = System.IO.File.Create(sd.FileName);
-                    writer.Serialize(file, drawing);
-                    file.Close();
-
-                    drawing.IsDirty = false;
-                    vectorPanel.DrawingPath = System.IO.Path.GetDirectoryName(sd.FileName);
-                }
+                SaveDrawingAs(drawing);
             }
             else
             {
                 if (vectorPanel != null && drawing != null)
                 {
-                    SaveDrawing(vectorPanel, drawing);
                     drawing.IsDirty = false;
+                    System.Xml.Serialization.XmlSerializer writer = new System.Xml.Serialization.XmlSerializer(typeof(Drawing));
+                    System.IO.FileStream file = System.IO.File.Create(System.IO.Path.Combine(vectorPanel.DrawingPath, drawing.FileName));
+                    writer.Serialize(file, drawing);
+                    file.Close();
                 }
             }
         }
 
-        private void SaveDrawing(VectorPanel vectorPanel, Drawing drawing)
+        private void SaveDrawingAs(Drawing drawing)
         {
-            System.Xml.Serialization.XmlSerializer writer = new System.Xml.Serialization.XmlSerializer(typeof(Drawing));
-            System.IO.FileStream file = System.IO.File.Create(System.IO.Path.Combine(vectorPanel.DrawingPath,drawing.FileName));
-            writer.Serialize(file, drawing);
-            file.Close();
+            SaveFileDialog sd = new SaveFileDialog();
+            sd.Filter = "Atari Vector Drawing | *.avd";
+
+            DialogResult dr = sd.ShowDialog();
+            if (dr == System.Windows.Forms.DialogResult.OK)
+            {
+                //save the filename into the actual file
+                drawing.FileName = Path.GetFileName(sd.FileName);
+                drawing.IsDirty = false;
+                GetCurrentVectorPanel().DrawingPath = System.IO.Path.GetDirectoryName(sd.FileName);
+                System.Xml.Serialization.XmlSerializer writer = new System.Xml.Serialization.XmlSerializer(typeof(Drawing));
+                System.IO.FileStream file = System.IO.File.Create(sd.FileName);
+                writer.Serialize(file, drawing);
+                file.Close();
+            }
         }
 
         private void toolStripButtonExportBinary_Click(object sender, EventArgs e)
@@ -344,7 +345,7 @@ namespace VPaint
             e.Graphics.DrawString("x", e.Font, Brushes.Black, e.Bounds.Right - 12, e.Bounds.Top + 4);
             //get the filename and dirty status 
             VectorPanel vectorPanel = this.tabControlImages.TabPages[e.Index].Tag as VectorPanel;
-            Drawing drawing = vectorPanel?.GetDrawing();
+            Drawing drawing = vectorPanel?.Drawing;
             e.Graphics.DrawString(drawing.GetFilename(), e.Font, Brushes.Black, e.Bounds.Left + 4, e.Bounds.Top + 4);
             e.DrawFocusRectangle();
         }
@@ -365,11 +366,6 @@ namespace VPaint
                     }
                 }
             }
-        }
-
-        private void MainForm_Resize(object sender, EventArgs e)
-        {
-            GetCurrentVectorPanel()?.Resize();
         }
 
         private void listViewVectors_SelectedIndexChanged(object sender, EventArgs e)
@@ -418,13 +414,6 @@ namespace VPaint
             }
         }
 
-        private void toolStripButtonFlipVector_Click(object sender, EventArgs e)
-        {
-            List<Guid> vectorsToFlip = listViewVectors.SelectedItems.Cast<ListViewItem>().Select(i => i.Tag).OfType<Vector>().Select(i => i.Id).ToList();
-            GetCurrentVectorPanel()?.FlipVectors(vectorsToFlip);
-            ReloadDrawing();
-        }
-
         private void ReloadDrawing()
         {
             VectorPanel vp = GetCurrentVectorPanel();
@@ -433,7 +422,7 @@ namespace VPaint
                 vp.Refresh();
                 vp.Invalidate();
             }
-            LoadVectors(vp.GetDrawing());
+            LoadVectors(vp.Drawing);
         }
 
         private void toolStripButtonCombineVectors_Click(object sender, EventArgs e)
@@ -471,7 +460,7 @@ namespace VPaint
             VectorPanel currentPanel = GetCurrentVectorPanel();
             if (currentPanel != null)
             {
-                if (currentPanel.GetDrawing().Vectors.Count > 0)
+                if (currentPanel.Drawing.Vectors.Count > 0)
                 {
                     DialogResult drExisting = MessageBox.Show("This drawing already has vectors, would you like to delete them?", "Remove Existing Vectors", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                     if (drExisting == DialogResult.Cancel)
@@ -480,7 +469,7 @@ namespace VPaint
                     }
                     if (drExisting == DialogResult.Yes)
                     {
-                        currentPanel.GetDrawing().Vectors.Clear();
+                        currentPanel.Drawing.Vectors.Clear();
                     }
                 }
                 ImportDialog id = new ImportDialog();
@@ -490,15 +479,11 @@ namespace VPaint
                 VectorPanel vp = GetCurrentVectorPanel();
                 if (vp != null)
                 {
-                    Drawing d = vp.GetDrawing();
                     if (dr == DialogResult.OK)
                     {
-                        foreach (Vector v in id.Vectors)
-                        {
-                            d.Vectors.Add(v);
-                        }
+                        vp.CreateVectors(id.Vectors);
+                        vp.RedrawControl();
                     }
-                    vp.RedrawControl();
                 }
             }
             else
@@ -580,30 +565,20 @@ namespace VPaint
 
         private void toolStripButtonVectorDelete_Click(object sender, EventArgs e)
         {
-            Drawing drawing = GetCurrentDrawing();
-            if (drawing != null)
+            List<Vector> vectors = new List<Vector>();
+            listViewVectors.BeginUpdate();
+            List<ListViewItem> itemsToRemove = new List<ListViewItem>();
+            foreach (ListViewItem item in listViewVectors.SelectedItems)
             {
-                drawing.ClearAllSelections();
-                listViewVectors.BeginUpdate();
-                List<ListViewItem> itemsToRemove = new List<ListViewItem>();
-                foreach (ListViewItem item in listViewVectors.SelectedItems)
-                {
-                    Vector vItem = item.Tag as Vector;
-                    drawing.Vectors.Remove(vItem);
-                    itemsToRemove.Add(item);
-                }
-                foreach(ListViewItem item in itemsToRemove)
-                {
-                    listViewVectors.Items.Remove(item);
-                }
-                listViewVectors.EndUpdate();
-                VectorPanel vp = GetCurrentVectorPanel();
-                if (vp != null)
-                {
-                    vp.Refresh();
-                    vp.Invalidate();
-                }
+                vectors.Add(item.Tag as Vector);
+                itemsToRemove.Add(item);
             }
+            foreach (ListViewItem item in itemsToRemove)
+            {
+                listViewVectors.Items.Remove(item);
+            }
+            listViewVectors.EndUpdate();
+            GetCurrentVectorPanel()?.DeleteVectors(vectors);
         }
 
         private void toolStripButtonShowHideGrid_Click(object sender, EventArgs e)
@@ -627,6 +602,7 @@ namespace VPaint
             
         }
 
+        #region Form Events
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
             GetCurrentVectorPanel()?.KeyDown(sender, e);
@@ -636,6 +612,38 @@ namespace VPaint
         {
 
         }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (tabControlImages.TabPages.Count > 0)
+            {
+                TabPage currentPage = tabControlImages.SelectedTab;
+                if (currentPage != null)
+                {
+                    VectorPanel vp = currentPage.Tag as VectorPanel;
+                    if (vp.Drawing.IsDirty)
+                    {
+                        DialogResult dr = MessageBox.Show("The drawing '" + currentPage.Text + "' has not been saved. Do you want to save it before closing?", "Save file?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                        if (dr == DialogResult.Cancel)
+                        {
+                            e.Cancel = true;
+                            return;
+                        }
+                        else if (dr == DialogResult.Yes)
+                        {
+                            SaveDrawing(vp.Drawing);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            GetCurrentVectorPanel()?.Resize();
+        }
+
+        #endregion
 
         private void toolStripButtonMergePoints_Click(object sender, EventArgs e)
         {
@@ -649,5 +657,61 @@ namespace VPaint
             }
             md.Close();
         }
+
+        private void toolStripButtonVisibility_Click(object sender, EventArgs e)
+        {
+            foreach(Vector v in listViewVectors.SelectedItems.Cast<ListViewItem>().Select(i => (Vector)i.Tag))
+            {
+                if (v.Brightness > 0){
+                    v.Brightness = 0;
+                    v.ColorIndex = 0;
+                }
+                else
+                {
+                    v.Brightness = 16;
+                    v.ColorIndex = VectorColorController.GetColorIndex(GetSelectedColor());
+                }
+            }
+            LoadVectors(GetCurrentDrawing());
+        }
+
+        private void toolStripButtonConnect_Click(object sender, EventArgs e)
+        {
+            Drawing drawing = GetCurrentDrawing();
+            //work backwards so we can insert without affecting the current iteration
+            for(int i = drawing.Vectors.Count -2; i >= 0; i--)
+            {
+                Vector currentVector = drawing.Vectors[i];
+                Vector connectingVector = drawing.Vectors[i + 1];
+                if (!currentVector.End.Point.Matches(connectingVector.Start.Point))
+                {
+                    //end of current does not match the start of the next vector
+                    //insert a new one.
+                    Vector newVector = new Vector(currentVector.End.Point, connectingVector.Start.Point);
+                    drawing.Vectors.Insert(i + 1, newVector);
+                }
+            }
+            LoadVectors(drawing);
+        }
+
+        private void toolStripButtonOptimizeVectors_Click(object sender, EventArgs e)
+        {
+            Drawing drawing = GetCurrentDrawing();
+            //work backwards so we can blend without affecting the current iteration
+            for (int i = drawing.Vectors.Count - 2; i >= 0; i--)
+            {
+                Vector currentVector = drawing.Vectors[i];
+                Vector connectingVector = drawing.Vectors[i + 1];
+                if (currentVector.ColorIndex == 0 && connectingVector.ColorIndex == 0)
+                {
+                    //these are both hidden, the second can be removed
+                    currentVector.End.Point = connectingVector.End.Point;
+                    currentVector.End.Selected = connectingVector.End.Selected;
+                    drawing.Vectors.Remove(connectingVector);
+                }
+            }
+            LoadVectors(drawing);
+        }
+
     }
 }

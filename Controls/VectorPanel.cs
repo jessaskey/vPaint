@@ -40,6 +40,7 @@ namespace VPaint
         private bool _showHiddenVectors = false;
 
         private Drawing _drawing = null;
+        private VectorCommandController _commandController = null;
         private string _currentDrawingPath = "";
 
         //private Guid _selectedVector = Guid.Empty;
@@ -54,6 +55,7 @@ namespace VPaint
             scaledPictureBox.ResizePictureBox();
             BackColor = Color.Black;
             _drawing = drawing;
+            _commandController = new VectorCommandController(_drawing);
             _vectorWidth = Globals.vectorWidth;
             //_toolController = new VectorToolController(this);
 
@@ -78,9 +80,9 @@ namespace VPaint
             set { _showGrid = value; }
         }
 
-        public Drawing GetDrawing()
+        public Drawing Drawing
         {
-            return _drawing;
+            get { return _drawing; }
         }
 
         public string DrawingPath
@@ -93,6 +95,39 @@ namespace VPaint
             {
                 _currentDrawingPath = value;
             }
+        }
+
+        public void ExecuteCommandQueue(VectorCommandQueue commandQueue)
+        {
+            _commandController.Execute(commandQueue);
+            RedrawControl();
+        }
+
+        public void Undo()
+        {
+            _commandController.Undo();
+            RedrawControl();
+        }
+
+        #region Command Functions Here
+
+        public void CreateVectors(List<Vector> vectors)
+        {
+            VectorCommandQueue cq = new VectorCommandQueue();
+            foreach (Vector v in vectors)
+            {
+                cq.Add(new DrawVectorCommand(v));
+            }
+            ExecuteCommandQueue(cq);
+        }
+
+        public void DeleteVectors(List<Vector> vectors)
+        {
+            _drawing.ClearAllSelections();
+            VectorCommandQueue cq = new VectorCommandQueue();
+            cq.Add(new DeleteVectorCommand(vectors));
+            ExecuteCommandQueue(cq);
+            RedrawControl();
         }
 
         public void ClearAllSelections()
@@ -117,27 +152,66 @@ namespace VPaint
             UpdateSelectedStatus();
         }
 
-        public bool RemoveSelectedPoint(Point point)
+        public void MoveSelectedPoints(int up, int down, int left, int right)
         {
-            bool removed = false;
-            //Point centerPoint = new Point(scaledPictureBox.Width / 2, scaledPictureBox.Height / 2);
-            foreach (Vector v in _drawing.Vectors.Where(p => p.Start.Point.Matches(point)))
+            List<Tuple<VectorPoint, Point>> points = new List<Tuple<VectorPoint, Point>>();
+
+            foreach (Vector v in _drawing.Vectors)
             {
-                v.Start.Selected = false;
-                removed = true;
+                if (v.Start.Selected)
+                {
+                    Tuple<VectorPoint, Point> pointMoveStart = new Tuple<VectorPoint, Point>(v.Start, v.Start.Point.Add(right - left, down - up));
+                    points.Add(pointMoveStart);
+                }
+                if (v.End.Selected)
+                {
+                    Tuple<VectorPoint, Point> pointMoveStart = new Tuple<VectorPoint, Point>(v.End, v.End.Point.Add(right - left, down - up));
+                    points.Add(pointMoveStart);
+                }
             }
-            foreach (Vector v in _drawing.Vectors.Where(p => p.End.Point.Matches(point)))
+
+            if (points.Count > 0)
             {
-                v.End.Selected = false;
-                removed = true;
+                VectorCommandQueue cq = new VectorCommandQueue();
+                cq.Add(new MovePointCommand(points));
+                ExecuteCommandQueue(cq);
             }
-            return removed;
         }
+        public void MovePoints(List<VectorPoint> selectedPoints)
+        {
+            List<Tuple<VectorPoint, Point>> movePointData = new List<Tuple<VectorPoint, Point>>();
+
+            foreach (VectorPoint vp in selectedPoints)
+            {
+                movePointData.Add(new Tuple<VectorPoint, Point>(vp, vp.Point));
+            }
+            VectorCommandQueue cq = new VectorCommandQueue();
+            cq.Add(new MovePointCommand(movePointData));
+            ExecuteCommandQueue(cq);
+        }
+
+        //public bool RemoveSelectedPoint(Point point)
+        //{
+        //    bool removed = false;
+        //    //Point centerPoint = new Point(scaledPictureBox.Width / 2, scaledPictureBox.Height / 2);
+        //    foreach (Vector v in _drawing.Vectors.Where(p => p.Start.Point.Matches(point)))
+        //    {
+        //        v.Start.Selected = false;
+        //        removed = true;
+        //    }
+        //    foreach (Vector v in _drawing.Vectors.Where(p => p.End.Point.Matches(point)))
+        //    {
+        //        v.End.Selected = false;
+        //        removed = true;
+        //    }
+        //    return removed;
+        //}
+        #endregion
 
         public void UpdateSelectedStatus()
         {
-            List<Point> selectedDrawingPoints = _drawing.GetSelectedPoints();
-            UpdateStatus("Selected Point(s) " + String.Join(",", selectedDrawingPoints.Select(p => "[" + p.ToString() + "]").ToArray()));
+            List<VectorPoint> selectedDrawingPoints = _drawing.GetSelectedPoints();
+            UpdateStatus("Selected Point(s) " + String.Join(",", selectedDrawingPoints.Select(p => "[" + p.Point.ToString() + "]").ToArray()));
         }
 
         private void DrawDot(Point p, Graphics g)
@@ -240,7 +314,7 @@ namespace VPaint
         /// <returns></returns>
         public List<VectorPoint> HitTest(Point hitPoint, bool selectedOnly, bool selectOnHit)
         {
-            int tolerance = (int)((Globals.snapGrid * scaledPictureBox.Zoom)/2);
+            int tolerance = (int)((5 * scaledPictureBox.Zoom)/2);
             Pen hitPen = new Pen(Color.Black, tolerance);
             Point centerPoint = new Point(scaledPictureBox.Width / 2, scaledPictureBox.Height / 2);
             Point adjustedHitPoint = hitPoint.Subtract(centerPoint).Divide(scaledPictureBox.Zoom);
@@ -342,51 +416,10 @@ namespace VPaint
                                 }
                             }
                         }
-                        //if (vectorHit && graphicsHit)
-                        //{
-                        //    //test points individually here
-                        //    if (v.Start.Point.IsWithinCircle(adjustedHitPoint, tolerance / 2))
-                        //    {
-                        //        hitVectorPoints.Add(v.Start);
-                        //        if (selectOnHit)
-                        //        {
-                        //            v.Start.Selected = true;
-                        //        }
-                        //    }
-                        //    else
-                        //    {
-                        //        //for now, assume that if start is hit, then end cant be hit. This might
-                        //        //cause an issue down the road if the vector is shorter than the tolerance
-                        //        //but for now, lets leave it.
-                        //        if (v.End.Point.IsWithinCircle(adjustedHitPoint, tolerance / 2))
-                        //        {
-                        //            hitVectorPoints.Add(v.End);
-                        //            if (selectOnHit)
-                        //            {
-                        //                v.End.Selected = true;
-                        //            }
-                        //        }
-                        //    }
-                        //}
                     }
                 }
             }
             return hitVectorPoints;
-        }
-
-        public void Delete()
-        {
-
-            List<Vector> selectedVectors = _drawing.Vectors.Where(v => v.Start.Selected && v.Start.Selected).ToList();
-            if (selectedVectors.Count > 0)
-            {
-                foreach (Vector v in selectedVectors)
-                {
-                    _drawing.Vectors.Remove(v);
-
-                }
-                RedrawControl();
-            }
         }
 
         public void CreateVector(Point start, Point end, Color color)
@@ -403,27 +436,41 @@ namespace VPaint
             //does the vector panel want any keys?
             if (e.KeyCode == Keys.Delete)
             {
-                Delete();
+                List<Vector> selectedVectors = _drawing.Vectors.Where(v => v.Start.Selected && v.Start.Selected).ToList();
+                DeleteVectors(selectedVectors);
+                e.Handled = true;
             }
             else if (e.KeyCode == Keys.Up)
             {
                 MoveSelectedPoints(Globals.snapGrid, 0, 0, 0);
+                e.Handled = true;
             }
             else if (e.KeyCode == Keys.Down)
             {
                 MoveSelectedPoints(0, Globals.snapGrid, 0, 0);
+                e.Handled = true;
             }
             else if (e.KeyCode == Keys.Left)
             {
                 MoveSelectedPoints(0, 0, Globals.snapGrid, 0);
+                e.Handled = true;
             }
             else if (e.KeyCode == Keys.Right)
             {
                 MoveSelectedPoints(0, 0, 0, Globals.snapGrid);
+                e.Handled = true;
             }
             else if (e.KeyCode == Keys.A && e.Control)
             {
                 SelectAll();
+            }
+            else if (e.KeyCode == Keys.Z && e.Control)
+            {
+                _commandController.Undo();
+            }
+            else if (e.KeyCode == Keys.Y && e.Control)
+            {
+                _commandController.Redo();
             }
             else
             {
@@ -436,72 +483,15 @@ namespace VPaint
         {
             foreach (Vector v in _drawing.Vectors)
             {
-                //is the entire vector selected.. if so move both
-                if (v.Start.Selected && v.End.Selected)
-                {
-                    v.Start.Point = v.Start.OriginalPoint.Add(offset.X, offset.Y);
-                    v.End.Point = v.End.OriginalPoint.Add(offset.X, offset.Y);
-                }
-                else
-                {
-                    //vector not selected, move individual points
-                    if (v.Start.Selected)
-                    {
-                        v.Start.Point = v.Start.OriginalPoint.Add(offset.X, offset.Y);
-                    }
-                    if (v.End.Selected)
-                    {
-                        v.End.Point = v.End.OriginalPoint.Add(offset.X, offset.Y);
-                    }
-                }
-            }
-        }
-
-        public void MoveSelectedPoints(int up, int down, int left, int right)
-        {
-            foreach (Vector v in _drawing.Vectors)
-            {
                 if (v.Start.Selected)
                 {
-                    v.Start.Point.Add(right - left, down - up);
+                    v.Start.Point = v.Start.OriginalPoint.Add(offset.X, offset.Y);
                 }
                 if (v.End.Selected)
                 {
-                    v.End.Point.Add(right - left, down - up);
+                    v.End.Point = v.End.OriginalPoint.Add(offset.X, offset.Y);
                 }
             }
-
-            //for (int i = 0; i < allDistinctSelectedPoints)
-            //{
-            //    vp.Point.X = vp.Point.X + (right - left);
-            //    vp.X += (right - left);
-            //    vp.Y += (down - up);
-            //    vp.Y += (down - up);
-            //}
-            //bool _selectedPointMatched = false;
-            //if (_selectedPoint != null)
-            //{
-            //    foreach(Vector v in _drawing.Vectors)
-            //    {
-            //        if (v.Start.Matches(_selectedPoint))
-            //        {
-            //            v.Start.X += (right - left);
-            //            v.Start.Y += (down - up);
-            //            _selectedPointMatched = true;
-            //        }
-            //        if (v.End.Matches(_selectedPoint))
-            //        {
-            //            v.End.X += (right - left);
-            //            v.End.Y += (down - up);
-            //            _selectedPointMatched = true;
-            //        }
-            //    }
-            //    if (_selectedPointMatched)
-            //    {
-            //        _selectedPoint = new Point(_selectedPoint.X + (right - left), _selectedPoint.Y + (down - up));
-            //    }
-            //}
-            RedrawControl();
         }
 
         public void SaveOriginalPoints()
@@ -555,19 +545,6 @@ namespace VPaint
             //panel.AutoScrollMinSize = new Size()
         }
 
-        public void FlipVectors(List<Guid> vectorsToFlip)
-        {
-            foreach (Guid guid in vectorsToFlip)
-            {
-                Vector vector = _drawing.Vectors.Where(v => v.Id == guid).FirstOrDefault();
-                if (vector != null)
-                {
-                    Point oldStart = vector.Start.Point;
-                    vector.Start.Point = vector.End.Point;
-                    vector.End.Point = oldStart;
-                }
-            }
-        }
 
         private void pictureBox_Paint(object sender, PaintEventArgs e)
         {
@@ -652,15 +629,15 @@ namespace VPaint
                 Pen selectedVectorPen = new Pen(selectedBrush, _vectorWidth + 1);
 
                 //draw non-selected vectors first (behind)
-                foreach (Vector v in _drawing.Vectors.Where(v => !(v.Start.Selected && v.End.Selected) && v.Color != Color.Transparent))
+                foreach (Vector v in _drawing.Vectors.Where(v => !(v.Start.Selected && v.End.Selected) && v.DisplayColor != Color.Transparent))
                 {
-                    Pen vectorPen = new Pen(v.Color, _vectorWidth);
+                    Pen vectorPen = new Pen(v.DisplayColor, _vectorWidth);
                     e.Graphics.DrawLine(vectorPen, v.Start.Point.Add(pictureBoxCenter), v.End.Point.Add(pictureBoxCenter));
                 }
                 //draw selected vectors now
                 foreach (Vector v in _drawing.Vectors.Where(v => v.Start.Selected && v.End.Selected))
                 {
-                    Pen vectorPen = new Pen(v.Color, _vectorWidth + 1);
+                    Pen vectorPen = new Pen(v.DisplayColor, _vectorWidth + 1);
                     //draw dashed
                     vectorPen.DashStyle = DashStyle.Dash;
                     Point startPoint = v.Start.Point.Add(pictureBoxCenter);
@@ -671,10 +648,10 @@ namespace VPaint
                     DrawDot(endPoint, e.Graphics, selectedBrush, _vectorWidth + 1);
                 }
 
-                List<Point> selectedPoints = _drawing.GetSelectedPoints();
-                foreach (Point p in selectedPoints)
+                List<VectorPoint> selectedPoints = _drawing.GetSelectedPoints();
+                foreach (VectorPoint vp in selectedPoints)
                 {
-                    DrawDot(p.Add(pictureBoxCenter), e.Graphics);
+                    DrawDot(vp.Point.Add(pictureBoxCenter), e.Graphics);
                 }
             }
         }
@@ -707,9 +684,9 @@ namespace VPaint
         {
             //need to adjust our scissor vector
             Point centerPoint = new Point(panel.Width / 2, panel.Height / 2);
-            scissorVector.Start.Point = scissorVector.Start.Point.Subtract(centerPoint).Divide(scaledPictureBox.Zoom);
-            scissorVector.End.Point = scissorVector.End.Point.Subtract(centerPoint).Divide(scaledPictureBox.Zoom);
-            foreach (Vector v in VectorToolController.VectorPanel.GetDrawing().Vectors)
+            scissorVector.Start.Point = scissorVector.Start.Point.Divide(scaledPictureBox.Zoom).Subtract(centerPoint);
+            scissorVector.End.Point = scissorVector.End.Point.Divide(scaledPictureBox.Zoom).Subtract(centerPoint);
+            foreach (Vector v in VectorToolController.VectorPanel.Drawing.Vectors)
             {
                 VectorIntersectionInfo info = VectorUtility.FindIntersection(scissorVector, v);
                 if (info.SegmentsIntersect)
@@ -735,6 +712,7 @@ namespace VPaint
 
         public void CutVectors(Dictionary<Vector, VectorIntersectionInfo> intersectingVectors, Dictionary<Vector, VectorIntersectionInfo> leftSideVectors, Dictionary<Vector, VectorIntersectionInfo> rightSideVectors)
         {
+            Drawing drawing = VectorToolController.VectorPanel.Drawing;
             Dictionary<Vector, VectorIntersectionInfo> minorityVectors = rightSideVectors;
             Dictionary<Vector, VectorIntersectionInfo> majorityVectors = leftSideVectors;
 
@@ -751,61 +729,71 @@ namespace VPaint
                 majoritySide = majorityVectors.First().Value.VectorStartSide;
             }
 
-            foreach (var vi in minorityVectors)
+            //foreach (var vi in minorityVectors)
+            //{
+            //    VectorToolController.VectorPanel.GetDrawing().Vectors.Remove(vi.Key);
+            //}
+
+            for (int i = 0; i < intersectingVectors.Count; i += 2)
             {
-                VectorToolController.VectorPanel.GetDrawing().Vectors.Remove(vi.Key);
+                KeyValuePair<Vector, VectorIntersectionInfo> leadingVector = intersectingVectors.ElementAt(i);
+                KeyValuePair<Vector, VectorIntersectionInfo> laggingVector = intersectingVectors.ElementAt(i+1);
+
+                //now delete all the vectors inbetween the two cut vectors
+                for(int j = drawing.Vectors.IndexOf(leadingVector.Key) + 1; j < drawing.Vectors.IndexOf(laggingVector.Key); j++)
+                {
+                    drawing.Vectors.RemoveAt(j);
+                }
+                //these are the vectors that need to be cut
+                //which side is on the 'keep' side
+                if (leadingVector.Value.VectorStartSide == majoritySide)
+                {
+                    //trimmed vector will go from the start to the intersecting point
+                    leadingVector.Key.End.Point.X = (int)leadingVector.Value.ClosestPointOnVector2.X;
+                    leadingVector.Key.End.Point.Y = (int)leadingVector.Value.ClosestPointOnVector2.Y;
+                }
+                if (leadingVector.Value.VectorEndSide == majoritySide)
+                {
+                    leadingVector.Key.Start.Point.X = (int)leadingVector.Value.ClosestPointOnVector2.X;
+                    leadingVector.Key.Start.Point.Y = (int)leadingVector.Value.ClosestPointOnVector2.Y;
+                }
+                //second vector
+                if (laggingVector.Value.VectorStartSide == majoritySide)
+                {
+                    //trimmed vector will go from the start to the intersecting point
+                    laggingVector.Key.End.Point.X = (int)laggingVector.Value.ClosestPointOnVector2.X;
+                    laggingVector.Key.End.Point.Y = (int)laggingVector.Value.ClosestPointOnVector2.Y;
+                }
+                if (laggingVector.Value.VectorEndSide == majoritySide)
+                {
+                    laggingVector.Key.Start.Point.X = (int)laggingVector.Value.ClosestPointOnVector2.X;
+                    laggingVector.Key.Start.Point.Y = (int)laggingVector.Value.ClosestPointOnVector2.Y;
+                }
+                //intersecting vectors should now be trimmed
+                //new vector will go from the intersecting point of this vector
+                //to the intersecting point of the other vector
+                Vector newVector = leadingVector.Key.Clone();
+                switch (VectorToolSettings.ScissorCutLineColor)
+                {
+                    case ScissorCutLineColor.LeadingVectorColor:
+                        newVector.ColorIndex = VectorColorController.GetColorIndex(leadingVector.Key.DisplayColor);
+                        break;
+                    case ScissorCutLineColor.LaggingVectorColor:
+                        newVector.ColorIndex = VectorColorController.GetColorIndex(leadingVector.Key.DisplayColor);
+                        break;
+                    case ScissorCutLineColor.Transparent:
+                        newVector.ColorIndex = 0; //black/transparent
+                        newVector.Brightness = 0;
+                        break;
+                    case ScissorCutLineColor.DefaultColor:
+                        newVector.ColorIndex = VectorColorController.GetColorIndex(MainForm.GetSelectedColor()); 
+                        break;
+                }
+                newVector.Start.Point = leadingVector.Key.End.Point;
+                newVector.End.Point = laggingVector.Key.Start.Point;
+                _drawing.Vectors.Insert(drawing.Vectors.IndexOf(leadingVector.Key) + 1, newVector);
             }
 
-            KeyValuePair<Vector, VectorIntersectionInfo> leadingVector = intersectingVectors.ElementAt(0);
-            KeyValuePair<Vector, VectorIntersectionInfo> laggingVector = intersectingVectors.ElementAt(1);
-
-            //these are the vectors that need to be cut
-            //which side is on the 'keep' side
-            if (leadingVector.Value.VectorStartSide == majoritySide)
-            {
-                //trimmed vector will go from the start to the intersecting point
-                leadingVector.Key.End.Point.X = (int)leadingVector.Value.ClosestPointOnVector2.X;
-                leadingVector.Key.End.Point.Y = (int)leadingVector.Value.ClosestPointOnVector2.Y;
-            }
-            if (leadingVector.Value.VectorEndSide == majoritySide)
-            {
-                leadingVector.Key.Start.Point.X = (int)leadingVector.Value.ClosestPointOnVector2.X;
-                leadingVector.Key.Start.Point.Y = (int)leadingVector.Value.ClosestPointOnVector2.Y;
-            }
-            //second vector
-            if (laggingVector.Value.VectorStartSide == majoritySide)
-            {
-                //trimmed vector will go from the start to the intersecting point
-                laggingVector.Key.End.Point.X = (int)laggingVector.Value.ClosestPointOnVector2.X;
-                laggingVector.Key.End.Point.Y = (int)laggingVector.Value.ClosestPointOnVector2.Y;
-            }
-            if (laggingVector.Value.VectorEndSide == majoritySide)
-            {
-                laggingVector.Key.Start.Point.X = (int)laggingVector.Value.ClosestPointOnVector2.X;
-                laggingVector.Key.Start.Point.Y = (int)laggingVector.Value.ClosestPointOnVector2.Y;
-            }
-            //intersecting vectors should now be trimmed
-            //new vector will go from the intersecting point of this vector
-            //to the intersecting point of the other vector
-            Vector newVector = leadingVector.Key.Clone();
-            switch (VectorToolSettings.ScissorCutLineColor)
-            {
-                case ScissorCutLineColor.LeadingVectorColor:
-                    newVector.Color = leadingVector.Key.Color;
-                    break;
-                case ScissorCutLineColor.LaggingVectorColor:
-                    newVector.Color = laggingVector.Key.Color;
-                    break;
-                case ScissorCutLineColor.Transparent:
-                    newVector.Color = Color.Transparent;
-                    break;
-                case ScissorCutLineColor.DefaultColor:
-                    newVector.Color = MainForm.GetSelectedColor();
-                    break;
-            }
-            newVector.Start.Point = leadingVector.Key.End.Point;
-            newVector.End.Point = laggingVector.Key.Start.Point;
-            _drawing.Vectors.Insert(VectorToolController.VectorPanel.GetDrawing().Vectors.IndexOf(leadingVector.Key) + 1, newVector);
             RedrawControl();
         }
 

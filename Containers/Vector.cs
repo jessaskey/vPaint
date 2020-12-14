@@ -17,13 +17,9 @@ namespace VPaint
         public VectorPoint End = new VectorPoint();
         public bool Sparkle = false;
         public int Page = 0;
-        //public bool Selected = false;
         public string SourceComment = "";
-
+        private int _colorIndex = 0;
         private int _brightness = 16;
-
-        [XmlIgnore]
-        public Color Color = Color.White;
 
         public Vector() { }
 
@@ -32,7 +28,6 @@ namespace VPaint
             Id = Guid.NewGuid();
             Start = VectorPointController.Create(start);
             End = VectorPointController.Create(end);
-            Color = Color.Transparent;
         }
 
         public Vector(Point start, Point end, Color color)
@@ -40,7 +35,7 @@ namespace VPaint
             Id = Guid.NewGuid();
             Start = VectorPointController.Create(start);
             End = VectorPointController.Create(end);
-            Color = color;
+            _colorIndex = VectorColorController.GetColorIndex(color);
         }
 
         public override string ToString()
@@ -53,13 +48,25 @@ namespace VPaint
             return "[" + (Start.Point.X-centerPoint.X).ToString() + "," + (Start.Point.Y-centerPoint.Y).ToString() + "][" + (End.Point.X-centerPoint.X).ToString() + "," + (End.Point.Y-centerPoint.Y).ToString() + "]";
         }
 
-
-        [XmlElement]
-        public string ColorCode
+        [XmlIgnore]
+        public Color DisplayColor
         {
-            get { return ColorTranslator.ToHtml(Color); }
-            set { Color = ColorTranslator.FromHtml(value); }
+            get
+            {
+                if (_brightness == 0)
+                {
+                    return Color.Transparent;
+                }
+                return VectorColorController.GetIndexColor(_colorIndex);
+            }
         }
+
+        //[XmlElement]
+        //public string ColorCode
+        //{
+        //    get { return ColorTranslator.ToHtml(DisplayColor); }
+        //    set { DisplayColor = ColorTranslator.FromHtml(value); }
+        //}
 
         public int Brightness
         {
@@ -74,6 +81,12 @@ namespace VPaint
             }
         }
 
+        public int ColorIndex
+        {
+            get { return _colorIndex; }
+            set { _colorIndex = value; }
+        }
+
 
         public Vector Clone()
         {
@@ -81,8 +94,8 @@ namespace VPaint
             newVector.Start.Point = this.Start.Point;
             newVector.End.Point = this.End.Point;
             newVector.Brightness = this.Brightness;
-            newVector.Color = this.Color;
-            newVector.ColorCode = this.ColorCode;
+            newVector.ColorIndex = this.ColorIndex;
+            //newVector.ColorCode = this.ColorCode;
             newVector.Id = new Guid();
             newVector.Page = this.Page;
             //newVector.Selected = false;

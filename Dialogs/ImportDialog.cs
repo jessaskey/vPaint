@@ -34,6 +34,7 @@ namespace VPaint
                 switch (command)
                 {
                     case "vctr":
+                    case "vctrl":
                         int x = GetNumberParameter(parms[0]);
                         int y = GetNumberParameter(parms[1])*-1;
                         Point thisPoint = new Point(x+lastPoint.X, y+ lastPoint.Y);

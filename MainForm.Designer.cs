@@ -59,6 +59,8 @@
             this.toolStripButtonCrosshair = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonScissors = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonMergePoints = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.listViewVectors = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -68,9 +70,12 @@
             this.toolStripButtonVectorUp = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonVectorDown = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonVectorDelete = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonVisibility = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonInsertVCenter = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButtonFlipVector = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonCombineVectors = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonConnect = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonOptimizeVectors = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonSaveAs = new System.Windows.Forms.ToolStripButton();
             this.tabControlToolProperties = new System.Windows.Forms.TabControl();
             this.tabPageSelect = new VPaint.ToolTabPage();
             this.tabPageEdit = new VPaint.ToolTabPage();
@@ -132,6 +137,7 @@
             this.toolStripButtonNew,
             this.toolStripButtonOpen,
             this.toolStripButtonSave,
+            this.toolStripButtonSaveAs,
             this.toolStripButton_SaveToSVG,
             this.toolStripSeparator2,
             this.toolStripButtonImport,
@@ -161,6 +167,7 @@
             this.toolStripButtonNew.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonNew.Name = "toolStripButtonNew";
             this.toolStripButtonNew.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButtonNew.Text = "New File";
             this.toolStripButtonNew.ToolTipText = "New";
             this.toolStripButtonNew.Click += new System.EventHandler(this.toolStripButtonNew_Click);
             // 
@@ -171,6 +178,7 @@
             this.toolStripButtonOpen.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonOpen.Name = "toolStripButtonOpen";
             this.toolStripButtonOpen.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButtonOpen.Text = "Open File";
             this.toolStripButtonOpen.ToolTipText = "Open";
             this.toolStripButtonOpen.Click += new System.EventHandler(this.toolStripButtonOpen_Click);
             // 
@@ -181,6 +189,7 @@
             this.toolStripButtonSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonSave.Name = "toolStripButtonSave";
             this.toolStripButtonSave.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButtonSave.Text = "Save File";
             this.toolStripButtonSave.ToolTipText = "Save";
             this.toolStripButtonSave.Click += new System.EventHandler(this.toolStripButtonSave_Click);
             // 
@@ -191,7 +200,7 @@
             this.toolStripButton_SaveToSVG.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton_SaveToSVG.Name = "toolStripButton_SaveToSVG";
             this.toolStripButton_SaveToSVG.Size = new System.Drawing.Size(24, 24);
-            this.toolStripButton_SaveToSVG.Text = "toolStripButton1";
+            this.toolStripButton_SaveToSVG.Text = "Save File As SVG";
             this.toolStripButton_SaveToSVG.ToolTipText = "Save to SVG";
             this.toolStripButton_SaveToSVG.Click += new System.EventHandler(this.toolStripButton_SaveToSVG_Click);
             // 
@@ -341,7 +350,9 @@
             this.toolStripButtonPointer,
             this.toolStripButtonCrosshair,
             this.toolStripButtonScissors,
-            this.toolStripButtonMergePoints});
+            this.toolStripButtonMergePoints,
+            this.toolStripSeparator8,
+            this.toolStripButton1});
             this.toolStrip3.Location = new System.Drawing.Point(0, 0);
             this.toolStrip3.Name = "toolStrip3";
             this.toolStrip3.Size = new System.Drawing.Size(24, 485);
@@ -391,6 +402,20 @@
             this.toolStripButtonMergePoints.Size = new System.Drawing.Size(21, 20);
             this.toolStripButtonMergePoints.Text = "Merge Points";
             this.toolStripButtonMergePoints.Click += new System.EventHandler(this.toolStripButtonMergePoints_Click);
+            // 
+            // toolStripSeparator8
+            // 
+            this.toolStripSeparator8.Name = "toolStripSeparator8";
+            this.toolStripSeparator8.Size = new System.Drawing.Size(21, 6);
+            // 
+            // toolStripButton1
+            // 
+            this.toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButton1.Image = global::VPaint.Properties.Resources.Flip_icon;
+            this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton1.Name = "toolStripButton1";
+            this.toolStripButton1.Size = new System.Drawing.Size(21, 20);
+            this.toolStripButton1.Text = "Mirror Selected Vectors Horizontally";
             // 
             // splitContainer2
             // 
@@ -454,9 +479,11 @@
             this.toolStripButtonVectorUp,
             this.toolStripButtonVectorDown,
             this.toolStripButtonVectorDelete,
+            this.toolStripButtonVisibility,
             this.toolStripButtonInsertVCenter,
-            this.toolStripButtonFlipVector,
-            this.toolStripButtonCombineVectors});
+            this.toolStripButtonCombineVectors,
+            this.toolStripButtonConnect,
+            this.toolStripButtonOptimizeVectors});
             this.toolStrip2.Location = new System.Drawing.Point(0, 0);
             this.toolStrip2.Name = "toolStrip2";
             this.toolStrip2.Size = new System.Drawing.Size(263, 27);
@@ -489,9 +516,19 @@
             this.toolStripButtonVectorDelete.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonVectorDelete.Name = "toolStripButtonVectorDelete";
             this.toolStripButtonVectorDelete.Size = new System.Drawing.Size(24, 24);
-            this.toolStripButtonVectorDelete.Text = "toolStripButton3";
+            this.toolStripButtonVectorDelete.Text = "Delete selected vectors";
             this.toolStripButtonVectorDelete.ToolTipText = "Delete Vector";
             this.toolStripButtonVectorDelete.Click += new System.EventHandler(this.toolStripButtonVectorDelete_Click);
+            // 
+            // toolStripButtonVisibility
+            // 
+            this.toolStripButtonVisibility.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonVisibility.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonVisibility.Image")));
+            this.toolStripButtonVisibility.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonVisibility.Name = "toolStripButtonVisibility";
+            this.toolStripButtonVisibility.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButtonVisibility.Text = "Toggle visibility on selected vectors";
+            this.toolStripButtonVisibility.Click += new System.EventHandler(this.toolStripButtonVisibility_Click);
             // 
             // toolStripButtonInsertVCenter
             // 
@@ -503,17 +540,6 @@
             this.toolStripButtonInsertVCenter.Text = "toolStripButton4";
             this.toolStripButtonInsertVCenter.ToolTipText = "Insert VCenter Item";
             // 
-            // toolStripButtonFlipVector
-            // 
-            this.toolStripButtonFlipVector.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButtonFlipVector.Image = global::VPaint.Properties.Resources.Flip_icon;
-            this.toolStripButtonFlipVector.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButtonFlipVector.Name = "toolStripButtonFlipVector";
-            this.toolStripButtonFlipVector.Size = new System.Drawing.Size(24, 24);
-            this.toolStripButtonFlipVector.Text = "toolStripButton1";
-            this.toolStripButtonFlipVector.ToolTipText = "Flip Vector";
-            this.toolStripButtonFlipVector.Click += new System.EventHandler(this.toolStripButtonFlipVector_Click);
-            // 
             // toolStripButtonCombineVectors
             // 
             this.toolStripButtonCombineVectors.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -521,9 +547,39 @@
             this.toolStripButtonCombineVectors.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonCombineVectors.Name = "toolStripButtonCombineVectors";
             this.toolStripButtonCombineVectors.Size = new System.Drawing.Size(24, 24);
-            this.toolStripButtonCombineVectors.Text = "toolStripButton1";
+            this.toolStripButtonCombineVectors.Text = "Combine selected vectors";
             this.toolStripButtonCombineVectors.ToolTipText = "Combine Vectors";
             this.toolStripButtonCombineVectors.Click += new System.EventHandler(this.toolStripButtonCombineVectors_Click);
+            // 
+            // toolStripButtonConnect
+            // 
+            this.toolStripButtonConnect.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonConnect.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonConnect.Image")));
+            this.toolStripButtonConnect.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonConnect.Name = "toolStripButtonConnect";
+            this.toolStripButtonConnect.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButtonConnect.Text = "Connect all lines into a solid sequence";
+            this.toolStripButtonConnect.Click += new System.EventHandler(this.toolStripButtonConnect_Click);
+            // 
+            // toolStripButtonOptimizeVectors
+            // 
+            this.toolStripButtonOptimizeVectors.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonOptimizeVectors.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonOptimizeVectors.Image")));
+            this.toolStripButtonOptimizeVectors.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonOptimizeVectors.Name = "toolStripButtonOptimizeVectors";
+            this.toolStripButtonOptimizeVectors.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButtonOptimizeVectors.Text = "Optimize Vectors: Linearize Visible and Minimize Duplicate hidden lines.";
+            this.toolStripButtonOptimizeVectors.Click += new System.EventHandler(this.toolStripButtonOptimizeVectors_Click);
+            // 
+            // toolStripButtonSaveAs
+            // 
+            this.toolStripButtonSaveAs.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonSaveAs.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonSaveAs.Image")));
+            this.toolStripButtonSaveAs.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonSaveAs.Name = "toolStripButtonSaveAs";
+            this.toolStripButtonSaveAs.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButtonSaveAs.Text = "Save File As...";
+            this.toolStripButtonSaveAs.Click += new System.EventHandler(this.toolStripButtonSaveAs_Click);
             // 
             // tabControlToolProperties
             // 
@@ -589,6 +645,7 @@
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainForm";
             this.Text = "VPaint";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MainForm_KeyPress);
@@ -647,7 +704,6 @@
         private System.Windows.Forms.ToolStripButton toolStripButtonVectorDown;
         private System.Windows.Forms.ToolStripButton toolStripButtonVectorDelete;
         private System.Windows.Forms.ToolStripButton toolStripButtonInsertVCenter;
-        private System.Windows.Forms.ToolStripButton toolStripButtonFlipVector;
         private System.Windows.Forms.ToolStripButton toolStripButtonCombineVectors;
         private System.Windows.Forms.ToolStripButton toolStripButtonImport;
         private System.Windows.Forms.ToolStrip toolStrip3;
@@ -667,6 +723,12 @@
         private ToolTabPage tabPageScissor;
         private Controls.ScissorToolPropertyControl scissorToolPropertyControl1;
         private System.Windows.Forms.ToolStripButton toolStripButtonMergePoints;
+        private System.Windows.Forms.ToolStripButton toolStripButtonVisibility;
+        private System.Windows.Forms.ToolStripButton toolStripButtonConnect;
+        private System.Windows.Forms.ToolStripButton toolStripButtonOptimizeVectors;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
+        private System.Windows.Forms.ToolStripButton toolStripButton1;
+        private System.Windows.Forms.ToolStripButton toolStripButtonSaveAs;
     }
 }
 
