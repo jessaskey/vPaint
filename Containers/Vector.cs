@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -9,9 +10,9 @@ using VPaint.Controllers;
 
 namespace VPaint
 {
+    [Serializable]
     public class Vector
     {
-
         public Guid Id = Guid.Empty;
         public VectorPoint Start = new VectorPoint();
         public VectorPoint End = new VectorPoint();
@@ -36,6 +37,16 @@ namespace VPaint
             Start = VectorPointController.Create(start);
             End = VectorPointController.Create(end);
             _colorIndex = VectorColorController.GetColorIndex(color);
+        }
+
+        public Vector(VectorPoint start, VectorPoint end, int colorIndex)
+        {
+            Id = Guid.NewGuid();
+            Start = VectorPointController.Create(start.Point);
+            Start.Selected = start.Selected;
+            End = VectorPointController.Create(end.Point);
+            End.Selected = end.Selected;
+            _colorIndex = colorIndex;
         }
 
         public override string ToString()

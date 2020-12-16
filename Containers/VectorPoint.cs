@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace VPaint
 {
+    [Serializable]
     public struct VectorPoint
     {
         public Point OriginalPoint;

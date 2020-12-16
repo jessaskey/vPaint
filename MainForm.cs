@@ -81,7 +81,7 @@ namespace VPaint
             toolStrip1.ResumeLayout();
 
             //open new drawing on startup
-            NewDrawing();
+            //NewDrawing();
             //_currentPaletteTool = PaletteTool.Selecting;
             SetCurrentTool(VectorTool.Selecting);
         }
@@ -221,13 +221,16 @@ namespace VPaint
         {
             OpenFileDialog od = new OpenFileDialog();
             od.Filter = "Atari Vector Drawing | *.avd";
-            od.Multiselect = false;
+            od.Multiselect = true;
             od.CheckFileExists = true;
 
             DialogResult dr = od.ShowDialog();
             if (dr == System.Windows.Forms.DialogResult.OK)
             {
-                LoadDrawing(od.FileName);
+                foreach (string filename in od.FileNames)
+                {
+                    LoadDrawing(filename);
+                }
             }
         }
 
@@ -247,12 +250,14 @@ namespace VPaint
                 }
                 //temp fix for bug that was not updating the filename property after saving
                 drawing.FileName = Path.GetFileName(currentDrawingFileName);
-                EditDrawing(drawing);
+                drawing.IsDirty = false;
+                VectorPanel vp = EditDrawing(drawing);
+                vp.DrawingPath = Path.GetDirectoryName(currentDrawingFileName);
                 file.Close();
             }
         }
 
-        private void EditDrawing(Drawing drawing)
+        private VectorPanel EditDrawing(Drawing drawing)
         {
             TabPage page = new TabPage();
             VectorPanel vectorPanel = new VectorPanel(drawing);
@@ -272,6 +277,7 @@ namespace VPaint
             drawing.OnVectorCollectionChanged = VectorChanged;
             vectorPanel.Resize();
             LoadVectors(drawing);
+            return vectorPanel;
         }
 
         private void toolStripButtonSave_Click(object sender, EventArgs e)
@@ -336,7 +342,10 @@ namespace VPaint
 
         private void tabControlImages_SelectedIndexChanged(object sender, EventArgs e)
         {
-            VectorToolController.VectorPanel = GetCurrentVectorPanel();
+            VectorPanel vectorPanel = GetCurrentVectorPanel();
+            VectorToolController.VectorPanel = vectorPanel;
+            vectorPanel.SetZoom(Globals.zoomLevel);
+            ReloadDrawing();
         }
 
         private void tabControlImages_DrawItem(object sender, DrawItemEventArgs e)
@@ -346,8 +355,17 @@ namespace VPaint
             //get the filename and dirty status 
             VectorPanel vectorPanel = this.tabControlImages.TabPages[e.Index].Tag as VectorPanel;
             Drawing drawing = vectorPanel?.Drawing;
-            e.Graphics.DrawString(drawing.GetFilename(), e.Font, Brushes.Black, e.Bounds.Left + 4, e.Bounds.Top + 4);
-            e.DrawFocusRectangle();
+            if (e.Index == tabControlImages.SelectedIndex)
+            {        
+                e.Graphics.FillRectangle(Brushes.Goldenrod, new Rectangle(e.Bounds.Left + 3, e.Bounds.Height-3, e.Bounds.Width-6,3));
+                Font boldFont = new Font(e.Font, FontStyle.Bold);
+                e.Graphics.DrawString(drawing.GetFilename(), boldFont, Brushes.Black, e.Bounds.Left + 2, e.Bounds.Top + 4);
+            }
+            else
+            {
+                e.Graphics.DrawString(drawing.GetFilename(), e.Font, Brushes.Black, e.Bounds.Left + 4, e.Bounds.Top + 4);
+            }
+            //e.DrawFocusRectangle();
         }
 
         private void tabControlImages_MouseDown(object sender, MouseEventArgs e)
@@ -419,8 +437,7 @@ namespace VPaint
             VectorPanel vp = GetCurrentVectorPanel();
             if (vp != null)
             {
-                vp.Refresh();
-                vp.Invalidate();
+                vp.RedrawControl();
             }
             LoadVectors(vp.Drawing);
         }
@@ -713,5 +730,23 @@ namespace VPaint
             LoadVectors(drawing);
         }
 
+        private void toolStripButtonSplitVector_Click(object sender, EventArgs e)
+        {
+            Drawing drawing = GetCurrentDrawing();
+            for(int i = drawing.Vectors.Count-1; i >= 0; i--)
+            {
+                Vector vector = drawing.Vectors[i];
+                if (vector.Start.Selected && vector.End.Selected)
+                {
+                    //split the vector...
+                    Point midPoint = new Point((vector.End.Point.X + vector.Start.Point.X)/2, (vector.End.Point.Y + vector.Start.Point.Y)/2);
+                    Vector newVector = new Vector(new VectorPoint() { Id = Guid.NewGuid(), Point = midPoint, Selected = true }, vector.End, vector.ColorIndex);
+                    vector.End.Point = midPoint;
+                    drawing.Vectors.Insert(i + 1, newVector);
+                }
+            }
+            ReloadDrawing();
+            LoadVectors(drawing);
+        }
     }
 }

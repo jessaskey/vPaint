@@ -26,27 +26,21 @@ namespace VPaint
 
     public partial class VectorPanel : UserControl
     {
+        private const string CLIP_VPAINT_LIST_VECTOR = "VPaint.List.Vectors";
+
         private bool _showGrid = true;
         private Brush _gridBrush = Brushes.White;
         private Brush _boundsBrush = Brushes.Gray;
-        //private Pen _editPen = new Pen(Brushes.Yellow, 1);
         private Pen _majorAxisPen = new Pen(Brushes.DimGray, 1);
         private int _editDotSize = 4;
         private int _gridSize = 10;
         private int _gridDotSize = 1;
-        //private Point _lastMouseSnap = Point.Empty;
-        //private float _zoom = 1f;
         private int _vectorWidth = 1;
         private bool _showHiddenVectors = false;
 
         private Drawing _drawing = null;
         private VectorCommandController _commandController = null;
         private string _currentDrawingPath = "";
-
-        //private Guid _selectedVector = Guid.Empty;
-        //private List<Point> _selectedPoints = new List<Point>();
-        //private List<Guid> _selectedVectors = new List<Guid>();
-        //private Point _dragStart = Point.Empty;
 
         public VectorPanel(Drawing drawing)
         {
@@ -61,7 +55,6 @@ namespace VPaint
 
             System.Reflection.PropertyInfo aProp = typeof(System.Windows.Forms.Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             aProp.SetValue(panel, true, null);
-
         }
 
         public ReportCoordinatesDelegate OnReportCoordinates = null;
@@ -471,6 +464,28 @@ namespace VPaint
             else if (e.KeyCode == Keys.Y && e.Control)
             {
                 _commandController.Redo();
+            }
+            //Copy
+            else if (e.KeyCode == Keys.C && e.Control)
+            {
+                List<Vector> selectedVectors = Drawing.Vectors.Where(v => v.Start.Selected || v.End.Selected).ToList();
+                Clipboard.SetData(CLIP_VPAINT_LIST_VECTOR, selectedVectors);
+            }
+            //Paste
+            else if (e.KeyCode == Keys.V && e.Control)
+            {
+                if (Clipboard.ContainsData(CLIP_VPAINT_LIST_VECTOR))
+                {
+                    List<Vector> vectors = Clipboard.GetData(CLIP_VPAINT_LIST_VECTOR) as List<Vector>;
+                    if (vectors != null)
+                    {
+                        foreach (Vector v in vectors)
+                        {
+                            Drawing.Vectors.Add(v);
+                        }
+                        RedrawControl();
+                    }
+                }
             }
             else
             {

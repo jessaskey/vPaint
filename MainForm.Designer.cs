@@ -36,6 +36,7 @@
             this.toolStripButtonNew = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonOpen = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonSave = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonSaveAs = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton_SaveToSVG = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripButtonImport = new System.Windows.Forms.ToolStripButton();
@@ -75,7 +76,7 @@
             this.toolStripButtonCombineVectors = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonConnect = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonOptimizeVectors = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButtonSaveAs = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonSplitVector = new System.Windows.Forms.ToolStripButton();
             this.tabControlToolProperties = new System.Windows.Forms.TabControl();
             this.tabPageSelect = new VPaint.ToolTabPage();
             this.tabPageEdit = new VPaint.ToolTabPage();
@@ -192,6 +193,16 @@
             this.toolStripButtonSave.Text = "Save File";
             this.toolStripButtonSave.ToolTipText = "Save";
             this.toolStripButtonSave.Click += new System.EventHandler(this.toolStripButtonSave_Click);
+            // 
+            // toolStripButtonSaveAs
+            // 
+            this.toolStripButtonSaveAs.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonSaveAs.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonSaveAs.Image")));
+            this.toolStripButtonSaveAs.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonSaveAs.Name = "toolStripButtonSaveAs";
+            this.toolStripButtonSaveAs.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButtonSaveAs.Text = "Save File As...";
+            this.toolStripButtonSaveAs.Click += new System.EventHandler(this.toolStripButtonSaveAs_Click);
             // 
             // toolStripButton_SaveToSVG
             // 
@@ -335,7 +346,7 @@
             this.tabControlImages.Location = new System.Drawing.Point(24, 0);
             this.tabControlImages.Margin = new System.Windows.Forms.Padding(2);
             this.tabControlImages.Name = "tabControlImages";
-            this.tabControlImages.Padding = new System.Drawing.Point(12, 3);
+            this.tabControlImages.Padding = new System.Drawing.Point(12, 5);
             this.tabControlImages.SelectedIndex = 0;
             this.tabControlImages.Size = new System.Drawing.Size(916, 485);
             this.tabControlImages.TabIndex = 0;
@@ -483,7 +494,8 @@
             this.toolStripButtonInsertVCenter,
             this.toolStripButtonCombineVectors,
             this.toolStripButtonConnect,
-            this.toolStripButtonOptimizeVectors});
+            this.toolStripButtonOptimizeVectors,
+            this.toolStripButtonSplitVector});
             this.toolStrip2.Location = new System.Drawing.Point(0, 0);
             this.toolStrip2.Name = "toolStrip2";
             this.toolStrip2.Size = new System.Drawing.Size(263, 27);
@@ -571,15 +583,15 @@
             this.toolStripButtonOptimizeVectors.Text = "Optimize Vectors: Linearize Visible and Minimize Duplicate hidden lines.";
             this.toolStripButtonOptimizeVectors.Click += new System.EventHandler(this.toolStripButtonOptimizeVectors_Click);
             // 
-            // toolStripButtonSaveAs
+            // toolStripButtonSplitVector
             // 
-            this.toolStripButtonSaveAs.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButtonSaveAs.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonSaveAs.Image")));
-            this.toolStripButtonSaveAs.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButtonSaveAs.Name = "toolStripButtonSaveAs";
-            this.toolStripButtonSaveAs.Size = new System.Drawing.Size(24, 24);
-            this.toolStripButtonSaveAs.Text = "Save File As...";
-            this.toolStripButtonSaveAs.Click += new System.EventHandler(this.toolStripButtonSaveAs_Click);
+            this.toolStripButtonSplitVector.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonSplitVector.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonSplitVector.Image")));
+            this.toolStripButtonSplitVector.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonSplitVector.Name = "toolStripButtonSplitVector";
+            this.toolStripButtonSplitVector.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButtonSplitVector.Text = "Split a vector";
+            this.toolStripButtonSplitVector.Click += new System.EventHandler(this.toolStripButtonSplitVector_Click);
             // 
             // tabControlToolProperties
             // 
@@ -729,6 +741,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
         private System.Windows.Forms.ToolStripButton toolStripButton1;
         private System.Windows.Forms.ToolStripButton toolStripButtonSaveAs;
+        private System.Windows.Forms.ToolStripButton toolStripButtonSplitVector;
     }
 }
 
