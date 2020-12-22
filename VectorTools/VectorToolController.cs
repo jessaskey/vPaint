@@ -19,35 +19,36 @@ namespace VPaint
         private static VectorToolDraw _toolDraw = new VectorToolDraw();
         private static VectorToolScissor _toolScissor = new VectorToolScissor();
 
-        //public VectorToolController() { }
-
-        //public VectorToolController(VectorPanel vectorPanel)
-        //{
-        //    _vectorPanel = vectorPanel;
-        //    //_toolSelect = new VectorToolSelect(vectorPanel);
-        //    //_toolDraw = new VectorToolDraw(vectorPanel);
-        //    //_toolScissor = new VectorToolScissor(vectorPanel);
-        //    _currentVectorToolObject = _toolSelect;
-        //}
-
-        public static void MouseDown(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
+        public static bool UsesSnap
         {
-            _currentVectorToolObject?.MouseDown(sender, e, snapPoint, modifierKeys);
+            get
+            {
+                if (_currentVectorToolObject != null)
+                {
+                    return _currentVectorToolObject.UsesSnap;
+                }
+                return false;
+            }
         }
 
-        public static void MouseMove(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
+        public static void MouseDown(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys, int currentSnap)
         {
-            _currentVectorToolObject?.MouseMove(sender, e, snapPoint, modifierKeys);
+            _currentVectorToolObject?.MouseDown(sender, e, snapPoint, modifierKeys, currentSnap);
         }
 
-        public static void MouseUp(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
+        public static void MouseMove(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys, int currentSnap)
         {
-            _currentVectorToolObject?.MouseUp(sender, e, snapPoint, modifierKeys);
+            _currentVectorToolObject?.MouseMove(sender, e, snapPoint, modifierKeys, currentSnap);
         }
 
-        public static void KeyDown(object sender, KeyEventArgs e)
+        public static void MouseUp(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys, int currentSnap)
         {
-            _currentVectorToolObject?.KeyDown(sender, e);
+            _currentVectorToolObject?.MouseUp(sender, e, snapPoint, modifierKeys, currentSnap);
+        }
+
+        public static void KeyDown(object sender, KeyEventArgs e, int currentSnap)
+        {
+            _currentVectorToolObject?.KeyDown(sender, e, currentSnap);
         }
 
         public static ToolAction CurrentToolAction = ToolAction.None;

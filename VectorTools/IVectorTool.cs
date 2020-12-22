@@ -10,14 +10,16 @@ namespace VPaint
 {
     public interface IVectorTool
     {
-        void MouseUp(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys);
-        void MouseMove(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys);
-        void MouseDown(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys);
-        void KeyDown(object sender, KeyEventArgs e);
+        void MouseUp(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys, int currentSnap);
+        void MouseMove(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys, int currentSnap);
+        void MouseDown(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys, int currentSnap);
+        void KeyDown(object sender, KeyEventArgs e, int currentSnap);
 
         Point DragStart { get; }
         Point CurrentPosition { get; }
         DragShape DragShape { get; }
         Pen Pen { get; }
+
+        bool UsesSnap { get; }
     }
 }

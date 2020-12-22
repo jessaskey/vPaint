@@ -225,12 +225,12 @@ namespace VPaint
         }
 
 
-        //private Point GetSnapPoint(PointF p)
-        //{
-        //    PointF scaledPoint = scaledPictureBox.ScalePoint(p);
-        //    //now snap it
-        //    return new Point((int)(scaledPoint.X / Globals.snapGrid) * Globals.snapGrid, (int)(scaledPoint.Y / Globals.snapGrid) * Globals.snapGrid);
-        //}
+        private Point GetSnapPoint(PointF p)
+        {
+            PointF scaledPoint = scaledPictureBox.ScalePoint(p);
+            //now snap it
+            return new Point((int)(scaledPoint.X / Globals.snapGrid) * Globals.snapGrid, (int)(scaledPoint.Y / Globals.snapGrid) * Globals.snapGrid);
+        }
 
         //private PointF ScalePointToZoom(PointF p)
         //{
@@ -490,7 +490,7 @@ namespace VPaint
             else
             {
                 //if not pass through to current tool
-                VectorToolController.KeyDown(sender, e);
+                VectorToolController.KeyDown(sender, e, Globals.snapGrid);
             }
         }
 
@@ -673,21 +673,32 @@ namespace VPaint
 
         private void pictureBox_MouseDown(object sender, MouseEventArgs e)
         {
-            //Point snapLocation = GetSnapPoint(e.Location);
-            VectorToolController.MouseDown(sender, e, e.Location, Control.ModifierKeys);
+            Point currentPoint = e.Location;
+            if (VectorToolController.UsesSnap)
+            {
+                currentPoint = GetSnapPoint(currentPoint);
+            }
+            VectorToolController.MouseDown(sender, e, currentPoint, Control.ModifierKeys, Globals.snapGrid);
         }
 
         private void pictureBox_MouseMove(object sender, MouseEventArgs e)
         {
             Cursor.Current = Cursors.Default;
-            //_lastMouseSnap = GetSnapPoint(e.Location);
-            VectorToolController.MouseMove(sender, e, e.Location, Control.ModifierKeys);
+            Point currentPoint = e.Location;
+            if (VectorToolController.UsesSnap) {
+                currentPoint = GetSnapPoint(currentPoint);
+            }
+            VectorToolController.MouseMove(sender, e, currentPoint, Control.ModifierKeys, Globals.snapGrid);
         }
 
         private void pictureBox_MouseUp(object sender, MouseEventArgs e)
         {
-            //_lastMouseSnap = GetSnapPoint(e.Location);
-            VectorToolController.MouseUp(sender, e, e.Location, Control.ModifierKeys);
+            Point currentPoint = e.Location;
+            if (VectorToolController.UsesSnap)
+            {
+                currentPoint = GetSnapPoint(currentPoint);
+            }
+            VectorToolController.MouseUp(sender, e, currentPoint, Control.ModifierKeys, Globals.snapGrid);
         }
 
         private void scaledPictureBox_Resize(object sender, EventArgs e)

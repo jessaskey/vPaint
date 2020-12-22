@@ -45,10 +45,10 @@ namespace VPaint
             Invalidate();
         }
 
-        //public PointF ScalePoint(PointF pt)
-        //{ 
-        //    return new PointF(pt.X / Zoom, pt.Y / Zoom); 
-        //}
+        public PointF ScalePoint(PointF pt)
+        {
+            return new PointF(pt.X / Zoom, pt.Y / Zoom);
+        }
 
     }
 }

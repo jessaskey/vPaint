@@ -113,6 +113,16 @@ namespace VPaint.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap file_close {
+            get {
+                object obj = ResourceManager.GetObject("file_close", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Flip_icon {
             get {
                 object obj = ResourceManager.GetObject("Flip-icon", resourceCulture);

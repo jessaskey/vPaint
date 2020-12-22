@@ -117,41 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="Delete-icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\Delete-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Flip-icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\Flip-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="OpenCollection" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\OpenCollection.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Up-icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\Up-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="NewCollection" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\NewCollection.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Down-icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\Down-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="SaveCollection" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\SaveCollection.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Center-icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\Center-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="BinaryFile" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\BinaryFile.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Combine-icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\Combine-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="pencil_003_16xMD" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\pencil_003_16xMD.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="file_close" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Assets\Buttons\file-close.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
 </root>

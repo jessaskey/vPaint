@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabelStatus = new System.Windows.Forms.ToolStripStatusLabel();
@@ -53,9 +54,11 @@
             this.toolStripButtonShowHideGrid = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonShowHideVectors = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripButtonPlay = new System.Windows.Forms.ToolStripButton();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControlImages = new System.Windows.Forms.TabControl();
-            this.toolStrip3 = new System.Windows.Forms.ToolStrip();
+            this.toolStripTools = new System.Windows.Forms.ToolStrip();
             this.toolStripButtonPointer = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonCrosshair = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonScissors = new System.Windows.Forms.ToolStripButton();
@@ -82,13 +85,14 @@
             this.tabPageEdit = new VPaint.ToolTabPage();
             this.tabPageScissor = new VPaint.ToolTabPage();
             this.scissorToolPropertyControl1 = new VPaint.Controls.ScissorToolPropertyControl();
+            this.timerAnimate = new System.Windows.Forms.Timer(this.components);
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
-            this.toolStrip3.SuspendLayout();
+            this.toolStripTools.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
@@ -154,7 +158,9 @@
             this.toolStripSeparator6,
             this.toolStripButtonShowHideGrid,
             this.toolStripButtonShowHideVectors,
-            this.toolStripSeparator7});
+            this.toolStripSeparator7,
+            this.toolStripSeparator9,
+            this.toolStripButtonPlay});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1206, 27);
@@ -319,6 +325,22 @@
             this.toolStripSeparator7.Name = "toolStripSeparator7";
             this.toolStripSeparator7.Size = new System.Drawing.Size(6, 27);
             // 
+            // toolStripSeparator9
+            // 
+            this.toolStripSeparator9.Name = "toolStripSeparator9";
+            this.toolStripSeparator9.Size = new System.Drawing.Size(6, 27);
+            // 
+            // toolStripButtonPlay
+            // 
+            this.toolStripButtonPlay.CheckOnClick = true;
+            this.toolStripButtonPlay.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonPlay.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonPlay.Image")));
+            this.toolStripButtonPlay.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonPlay.Name = "toolStripButtonPlay";
+            this.toolStripButtonPlay.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButtonPlay.Text = "toolStripButton2";
+            this.toolStripButtonPlay.Click += new System.EventHandler(this.toolStripButtonPlay_Click);
+            // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -329,7 +351,7 @@
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.Controls.Add(this.tabControlImages);
-            this.splitContainer1.Panel1.Controls.Add(this.toolStrip3);
+            this.splitContainer1.Panel1.Controls.Add(this.toolStripTools);
             // 
             // splitContainer1.Panel2
             // 
@@ -346,7 +368,7 @@
             this.tabControlImages.Location = new System.Drawing.Point(24, 0);
             this.tabControlImages.Margin = new System.Windows.Forms.Padding(2);
             this.tabControlImages.Name = "tabControlImages";
-            this.tabControlImages.Padding = new System.Drawing.Point(12, 5);
+            this.tabControlImages.Padding = new System.Drawing.Point(16, 5);
             this.tabControlImages.SelectedIndex = 0;
             this.tabControlImages.Size = new System.Drawing.Size(916, 485);
             this.tabControlImages.TabIndex = 0;
@@ -354,21 +376,21 @@
             this.tabControlImages.SelectedIndexChanged += new System.EventHandler(this.tabControlImages_SelectedIndexChanged);
             this.tabControlImages.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tabControlImages_MouseDown);
             // 
-            // toolStrip3
+            // toolStripTools
             // 
-            this.toolStrip3.Dock = System.Windows.Forms.DockStyle.Left;
-            this.toolStrip3.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripTools.Dock = System.Windows.Forms.DockStyle.Left;
+            this.toolStripTools.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButtonPointer,
             this.toolStripButtonCrosshair,
             this.toolStripButtonScissors,
             this.toolStripButtonMergePoints,
             this.toolStripSeparator8,
             this.toolStripButton1});
-            this.toolStrip3.Location = new System.Drawing.Point(0, 0);
-            this.toolStrip3.Name = "toolStrip3";
-            this.toolStrip3.Size = new System.Drawing.Size(24, 485);
-            this.toolStrip3.TabIndex = 1;
-            this.toolStrip3.Text = "toolStrip3";
+            this.toolStripTools.Location = new System.Drawing.Point(0, 0);
+            this.toolStripTools.Name = "toolStripTools";
+            this.toolStripTools.Size = new System.Drawing.Size(24, 485);
+            this.toolStripTools.TabIndex = 1;
+            this.toolStripTools.Text = "toolStrip3";
             // 
             // toolStripButtonPointer
             // 
@@ -644,6 +666,11 @@
             this.scissorToolPropertyControl1.Size = new System.Drawing.Size(255, 95);
             this.scissorToolPropertyControl1.TabIndex = 0;
             // 
+            // timerAnimate
+            // 
+            this.timerAnimate.Interval = 1000;
+            this.timerAnimate.Tick += new System.EventHandler(this.timerAnimate_Tick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -671,8 +698,8 @@
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
-            this.toolStrip3.ResumeLayout(false);
-            this.toolStrip3.PerformLayout();
+            this.toolStripTools.ResumeLayout(false);
+            this.toolStripTools.PerformLayout();
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel1.PerformLayout();
             this.splitContainer2.Panel2.ResumeLayout(false);
@@ -718,7 +745,7 @@
         private System.Windows.Forms.ToolStripButton toolStripButtonInsertVCenter;
         private System.Windows.Forms.ToolStripButton toolStripButtonCombineVectors;
         private System.Windows.Forms.ToolStripButton toolStripButtonImport;
-        private System.Windows.Forms.ToolStrip toolStrip3;
+        private System.Windows.Forms.ToolStrip toolStripTools;
         private System.Windows.Forms.ToolStripButton toolStripButtonPointer;
         private System.Windows.Forms.ToolStripButton toolStripButtonCrosshair;
         private System.Windows.Forms.ToolStripButton toolStripButton_SaveToSVG;
@@ -742,6 +769,9 @@
         private System.Windows.Forms.ToolStripButton toolStripButton1;
         private System.Windows.Forms.ToolStripButton toolStripButtonSaveAs;
         private System.Windows.Forms.ToolStripButton toolStripButtonSplitVector;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator9;
+        private System.Windows.Forms.ToolStripButton toolStripButtonPlay;
+        private System.Windows.Forms.Timer timerAnimate;
     }
 }
 

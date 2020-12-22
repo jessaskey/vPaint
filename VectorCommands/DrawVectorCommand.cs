@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +9,8 @@ namespace VPaint
 {
     public class DrawVectorCommand : IVectorCommand
     {
-        Vector _vector = null;
+        private Vector _vector = null;
+
         public DrawVectorCommand(Vector v)
         {
             _vector = v;

@@ -270,7 +270,7 @@ namespace VPaint
 
             page.Controls.Add(vectorPanel);
             page.Tag = vectorPanel;
-            page.Text = drawing.GetFilename();
+            page.Text = drawing.GetFilenameTitle();;
             tabControlImages.TabPages.Add(page);
             tabControlImages.SelectedTab = page;
 
@@ -351,19 +351,23 @@ namespace VPaint
         private void tabControlImages_DrawItem(object sender, DrawItemEventArgs e)
         {
             //This code will render a "x" mark at the end of the Tab caption. 
-            e.Graphics.DrawString("x", e.Font, Brushes.Black, e.Bounds.Right - 12, e.Bounds.Top + 4);
+            //e.Graphics.DrawString("x", e.Font, Brushes.Black, e.Bounds.Right - 12, e.Bounds.Top + 4);
+
+            Bitmap closeIcon = Properties.Resources.file_close;
+            e.Graphics.DrawImage(closeIcon, new Point(e.Bounds.Right - 14, e.Bounds.Top + 6));
+            
             //get the filename and dirty status 
             VectorPanel vectorPanel = this.tabControlImages.TabPages[e.Index].Tag as VectorPanel;
             Drawing drawing = vectorPanel?.Drawing;
             if (e.Index == tabControlImages.SelectedIndex)
             {        
-                e.Graphics.FillRectangle(Brushes.Goldenrod, new Rectangle(e.Bounds.Left + 3, e.Bounds.Height-3, e.Bounds.Width-6,3));
+                e.Graphics.FillRectangle(Brushes.Goldenrod, new Rectangle(e.Bounds.Left + 3, e.Bounds.Height-3, e.Bounds.Width-4,3));
                 Font boldFont = new Font(e.Font, FontStyle.Bold);
-                e.Graphics.DrawString(drawing.GetFilename(), boldFont, Brushes.Black, e.Bounds.Left + 2, e.Bounds.Top + 4);
+                e.Graphics.DrawString(drawing.GetFilenameTitle(), boldFont, Brushes.Black, e.Bounds.Left + 2, e.Bounds.Top + 4);
             }
             else
             {
-                e.Graphics.DrawString(drawing.GetFilename(), e.Font, Brushes.Black, e.Bounds.Left + 4, e.Bounds.Top + 4);
+                e.Graphics.DrawString(drawing.GetFilenameTitle(), e.Font, Brushes.Black, e.Bounds.Left + 4, e.Bounds.Top + 4);
             }
             //e.DrawFocusRectangle();
         }
@@ -374,7 +378,7 @@ namespace VPaint
             {
                 Rectangle r = tabControlImages.GetTabRect(i);
                 //Getting the position of the "x" mark.
-                Rectangle closeButton = new Rectangle(r.Right - 12, r.Top + 4, 9, 7);
+                Rectangle closeButton = new Rectangle(r.Right - 12, r.Top, 12, 12);
                 if (closeButton.Contains(e.Location))
                 {
                     if (MessageBox.Show("Would you like to Close this Tab?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
@@ -557,12 +561,12 @@ namespace VPaint
 
         private void ApplyToolStripRadioEffect(object sender)
         {
-            foreach (ToolStripButton item in ((ToolStripButton)sender).GetCurrentParent().Items)
+            foreach (ToolStripButton button in toolStripTools.Items.OfType<ToolStripButton>())
             {
-                if (item == sender) item.Checked = true;
-                if ((item != null) && (item != sender))
+                if (button == sender) button.Checked = true;
+                if ((button != null) && (button != sender))
                 {
-                    item.Checked = false;
+                    button.Checked = false;
                 }
             }
         }
@@ -747,6 +751,26 @@ namespace VPaint
             }
             ReloadDrawing();
             LoadVectors(drawing);
+        }
+
+        private void toolStripButtonPlay_Click(object sender, EventArgs e)
+        {
+            timerAnimate.Enabled = toolStripButtonPlay.Checked;
+        }
+
+        private void timerAnimate_Tick(object sender, EventArgs e)
+        {
+            int index = tabControlImages.SelectedIndex;
+            index++;
+            if (index >= tabControlImages.TabCount)
+            {
+                index = 0;
+            }
+            tabControlImages.SelectedIndex = index;
+            VectorPanel vectorPanel = GetCurrentVectorPanel();
+            VectorToolController.VectorPanel = vectorPanel;
+            vectorPanel.SetZoom(Globals.zoomLevel);
+            ReloadDrawing();
         }
     }
 }

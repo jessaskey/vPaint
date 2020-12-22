@@ -75,6 +75,7 @@
     <Compile Include="Containers\Vector.cs" />
     <Compile Include="Containers\VectorAction.cs" />
     <Compile Include="Containers\VectorPoint.cs" />
+    <Compile Include="Controllers\ExceptionController.cs" />
     <Compile Include="Controllers\VectorCommandController.cs" />
     <Compile Include="Controllers\VectorColorController.cs" />
     <Compile Include="Controllers\VectorPointController.cs" />
@@ -86,6 +87,12 @@
     </Compile>
     <Compile Include="Controls\VectorListView.Designer.cs">
       <DependentUpon>VectorListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ExceptionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\ExceptionDialog.Designer.cs">
+      <DependentUpon>ExceptionDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Dialogs\MergePointsDialog.cs">
       <SubType>Form</SubType>
@@ -159,6 +166,9 @@
     <EmbeddedResource Include="Dialogs\BinaryExportDialog.resx">
       <DependentUpon>BinaryExportDialog.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\ExceptionDialog.resx">
+      <DependentUpon>ExceptionDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Dialogs\ImportDialog.resx">
       <DependentUpon>ImportDialog.cs</DependentUpon>
     </EmbeddedResource>
@@ -216,6 +226,7 @@
     <None Include="Assets\Buttons\BinaryFile.bmp" />
     <Content Include="app.ico" />
     <Content Include="Assets\app.ico" />
+    <None Include="Assets\Buttons\file-close.png" />
     <Content Include="Assets\Buttons\NewCollection.bmp" />
     <Content Include="Assets\Buttons\OpenCollection.bmp" />
     <None Include="Assets\Buttons\pencil_003_16xMD.cur" />

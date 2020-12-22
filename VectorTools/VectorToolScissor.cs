@@ -42,8 +42,12 @@ namespace VPaint.Tools
         {
             get { return _pen; }
         }
+        public bool UsesSnap
+        {
+            get { return true; }
+        }
 
-        public void MouseDown(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys)
+        public void MouseDown(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys, int currentSnap)
         {
             //if (e.Button == MouseButtons.Left)
             //{
@@ -59,7 +63,7 @@ namespace VPaint.Tools
         }
 
 
-        public void MouseMove(object sender, MouseEventArgs e, Point hitPoint, Keys modifierKeys)
+        public void MouseMove(object sender, MouseEventArgs e, Point hitPoint, Keys modifierKeys, int currentSnap)
         {
             switch (_currentToolState)
             {
@@ -87,7 +91,7 @@ namespace VPaint.Tools
             VectorToolController.VectorPanel.OnReportCoordinates?.Invoke(hitPoint, relativePoint, currentVector);
         }
 
-        public void MouseUp(object sender, MouseEventArgs e, Point hitPoint, Keys modifierKeys)
+        public void MouseUp(object sender, MouseEventArgs e, Point hitPoint, Keys modifierKeys, int currentSnap)
         {
             if (e.Button == MouseButtons.Left)
             {
@@ -139,7 +143,7 @@ namespace VPaint.Tools
             }
         }
 
-        public void KeyDown(object sender, KeyEventArgs e)
+        public void KeyDown(object sender, KeyEventArgs e, int currentSnap)
         {
             if (e.KeyCode == Keys.Escape)
             {

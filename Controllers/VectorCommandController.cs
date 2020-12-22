@@ -25,6 +25,7 @@ namespace VPaint
         public void Execute(VectorCommandQueue commandQueue)
         {
             commandQueue.Execute(_drawing);
+            _drawing.IsDirty = true;
             _queueStackNormal.Push(commandQueue);
             _queueStackReverse.Clear();
             _actionHistory.Add(commandQueue.ToString());

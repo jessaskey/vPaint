@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -72,9 +73,9 @@ namespace VPaint
             }
         }
 
-        public string GetFilename()
+        public string GetFilenameTitle()
         {
-            return FileName + (IsDirty ? "*" : "");
+            return Path.GetFileNameWithoutExtension(FileName) + (IsDirty ? " *" : "");
         }
 
 
