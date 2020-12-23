@@ -86,6 +86,7 @@
             this.tabPageScissor = new VPaint.ToolTabPage();
             this.scissorToolPropertyControl1 = new VPaint.Controls.ScissorToolPropertyControl();
             this.timerAnimate = new System.Windows.Forms.Timer(this.components);
+            this.labelSelectTool = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -99,6 +100,7 @@
             this.splitContainer2.SuspendLayout();
             this.toolStrip2.SuspendLayout();
             this.tabControlToolProperties.SuspendLayout();
+            this.tabPageSelect.SuspendLayout();
             this.tabPageScissor.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -629,6 +631,7 @@
             // 
             // tabPageSelect
             // 
+            this.tabPageSelect.Controls.Add(this.labelSelectTool);
             this.tabPageSelect.Location = new System.Drawing.Point(4, 22);
             this.tabPageSelect.Name = "tabPageSelect";
             this.tabPageSelect.Padding = new System.Windows.Forms.Padding(3);
@@ -671,6 +674,15 @@
             this.timerAnimate.Interval = 1000;
             this.timerAnimate.Tick += new System.EventHandler(this.timerAnimate_Tick);
             // 
+            // labelSelectTool
+            // 
+            this.labelSelectTool.Location = new System.Drawing.Point(6, 15);
+            this.labelSelectTool.Name = "labelSelectTool";
+            this.labelSelectTool.Size = new System.Drawing.Size(246, 77);
+            this.labelSelectTool.TabIndex = 0;
+            this.labelSelectTool.Text = "Click points or lines to select. Select additional points/lines by holding down C" +
+    "TRL key. Select all items in rectangle by right click-dragging a rectangle.";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -708,6 +720,7 @@
             this.toolStrip2.ResumeLayout(false);
             this.toolStrip2.PerformLayout();
             this.tabControlToolProperties.ResumeLayout(false);
+            this.tabPageSelect.ResumeLayout(false);
             this.tabPageScissor.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -772,6 +785,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator9;
         private System.Windows.Forms.ToolStripButton toolStripButtonPlay;
         private System.Windows.Forms.Timer timerAnimate;
+        private System.Windows.Forms.Label labelSelectTool;
     }
 }
 

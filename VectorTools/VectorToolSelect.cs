@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace VPaint.Tools
     public enum SelectToolState
     {
         Idle,   //initial status
+        Selecting,
         Selected, //once selected, if you click and drag, then the selected things will move
         Moving
     }
@@ -75,39 +77,19 @@ namespace VPaint.Tools
                         }
                         break;
                 }
-                //if (_currentToolState == SelectToolState.Idle)
-                //{
-                //if '
-                //(Control.ModifierKeys & Keys.Shift) != Keys.None
-                ///{
-                //force select
-
-                //}
-                //else
-                //{
-                //    //are we at the current selected point? If so we are moving the point
-                //    if (_selectedPoint != Point.Empty && _selectedPoint.X == snapPoint.X && _selectedPoint.Y == snapPoint.Y)
-                //    {
-                //        _currentToolState = SelectToolState.Moving;
-                //        Cursor.Current = Cursors.Arrow;
-                //    }
-                //}
-                //}
-                //else
-                //{
-                //    //was moving, finish it up now..
-                //    _currentToolState = SelectToolState.Idle;
-                //    _dragStart = Point.Empty;
-                //    Cursor.Current = Cursors.Default;
-                //}
                 VectorToolController.VectorPanel.RedrawControl();
             }
-            //else if (e.Button == MouseButtons.Right)
-            //{
-            //    //selecting here...
-            //    _dragStart = snapPoint;
-            //    _currentToolState = SelectToolState.Selected;
-            //}
+            else if (e.Button == MouseButtons.Right)
+            {
+                switch (_currentToolState)
+                {
+                    case SelectToolState.Idle:
+                        _currentToolState = SelectToolState.Selecting;
+                        _dragStart = hitPoint;
+                        _currentPosition = Point.Empty;
+                        break;
+                }
+            }
         }
 
 
@@ -149,7 +131,17 @@ namespace VPaint.Tools
                         break;
                 }
             }
-
+            else if (e.Button == MouseButtons.Right)
+            {
+                switch(_currentToolState)
+                {
+                    case SelectToolState.Selecting:
+                        _currentPosition = hitPoint;
+                        Cursor.Current = new Cursor(new MemoryStream(Properties.Resources.RectangleSelectionTool_200));
+                        VectorToolController.VectorPanel.RedrawControl();
+                        break;
+                }
+            }
             else if (_currentToolState == SelectToolState.Moving)
             {
                 Cursor.Current = Cursors.Hand;
@@ -177,20 +169,6 @@ namespace VPaint.Tools
                 Cursor.Current = Cursors.Default;
                 VectorToolController.VectorPanel.RedrawControl();
             }
-            else
-            {
-                //hit test for changing of cursor
-                //VectorPoint? p = _vectorPanel.FindVectorPoint(snapPoint);
-                //if (p != null)
-                //{
-                //    Cursor.Current = Cursors.Default;
-                //}
-                //else if (_vectorPanel.FindVector(snapPoint) != null)
-                //{
-                //    Cursor.Current = Cursors.Default;
-                //}
-
-            }
 
             Size currentVector = new Size(0, 0);
             if (_dragStart != Point.Empty)
@@ -209,13 +187,16 @@ namespace VPaint.Tools
             {
                 switch (_currentToolState)
                 {
-                    case SelectToolState.Idle:
+                    case SelectToolState.Selecting:
                         //select all vectors in rectangle
-                        Rectangle rect = new Rectangle(_dragStart, new Size(hitPoint.X - _dragStart.X, hitPoint.Y - _dragStart.Y));
-                        foreach (Vector v in VectorToolController.VectorPanel.Drawing.Vectors)
+                        List<VectorPoint> hitPoints = VectorToolController.VectorPanel.HitTest(_dragStart, hitPoint, true);
+                        if (hitPoints.Count > 0)
                         {
-                            v.Start.Selected = rect.Contains(v.Start.Point);
-                            v.End.Selected = rect.Contains(v.End.Point);
+                            _currentToolState = SelectToolState.Selected;
+                        }
+                        else
+                        {
+                            _currentToolState = SelectToolState.Idle;
                         }
                         break;
                 }

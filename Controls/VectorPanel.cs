@@ -415,6 +415,30 @@ namespace VPaint
             return hitVectorPoints;
         }
 
+        public List<VectorPoint> HitTest(Point startPoint, Point endPoint, bool selectOnHit)
+        {
+            List<VectorPoint> hitPoints = new List<VectorPoint>();
+            //adjust points for scaling
+            Point centerPoint = new Point(scaledPictureBox.Width / 2, scaledPictureBox.Height / 2);
+            Point adjustedStartPoint = startPoint.Subtract(centerPoint).Divide(scaledPictureBox.Zoom);
+            Point adjustedEndPoint = endPoint.Subtract(centerPoint).Divide(scaledPictureBox.Zoom);
+
+            Rectangle rect = new Rectangle(adjustedStartPoint, new Size(adjustedEndPoint.X - adjustedStartPoint.X, adjustedEndPoint.Y - adjustedStartPoint.Y));
+            foreach (Vector v in VectorToolController.VectorPanel.Drawing.Vectors)
+            {
+                if (rect.Contains(v.Start.Point))
+                {
+                    v.Start.Selected = true;
+                    hitPoints.Add(v.Start);
+                }
+                if (rect.Contains(v.End.Point))
+                {
+                    v.End.Selected = true;
+                    hitPoints.Add(v.End);
+                }
+            }
+            return hitPoints;
+        }
         public void CreateVector(Point start, Point end, Color color)
         {
             Point centerPoint = new Point(panel.Width / 2, panel.Height / 2);
@@ -610,7 +634,8 @@ namespace VPaint
                 }
             }
 
-            if (VectorToolController.DragStart != Point.Empty && VectorToolController.CurrentPosition != Point.Empty)
+            if (VectorToolController.DragStart != Point.Empty 
+                    && VectorToolController.CurrentPosition != Point.Empty)
             {
                 Point adjustedStart = VectorToolController.DragStart.Divide(scaledPictureBox.Zoom);
                 Point adjustedEnd = VectorToolController.CurrentPosition.Divide(scaledPictureBox.Zoom);

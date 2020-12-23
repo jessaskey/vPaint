@@ -230,6 +230,8 @@
     <Content Include="Assets\Buttons\NewCollection.bmp" />
     <Content Include="Assets\Buttons\OpenCollection.bmp" />
     <None Include="Assets\Buttons\pencil_003_16xMD.cur" />
+    <None Include="Assets\Buttons\RectangleSelectionTool_200.png" />
+    <None Include="Assets\Buttons\RectangleSelectionTool_200.cur" />
     <Content Include="Assets\Buttons\SaveCollection.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
