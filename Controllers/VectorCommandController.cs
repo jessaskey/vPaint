@@ -9,7 +9,6 @@ namespace VPaint
     public class VectorCommandController
     {
         private Drawing _drawing = null;
-
         private Stack<VectorCommandQueue> _queueStackNormal;
         private Stack<VectorCommandQueue> _queueStackReverse;
         private List<string> _actionHistory;
@@ -31,20 +30,30 @@ namespace VPaint
             _actionHistory.Add(commandQueue.ToString());
         }
 
-        public void Undo()
+        public bool Undo()
         {
-            VectorCommandQueue commandQueue = _queueStackNormal.Pop();
-            commandQueue.Undo(_drawing);
-            _queueStackReverse.Push(commandQueue);
-            _actionHistory.Add(commandQueue.ToString());
+            if (_queueStackNormal.Count > 0)
+            {
+                VectorCommandQueue commandQueue = _queueStackNormal.Pop();
+                commandQueue.Undo(_drawing);
+                _queueStackReverse.Push(commandQueue);
+                _actionHistory.Add(commandQueue.ToString());
+                return true;
+            }
+            return false;
         }
 
-        public void Redo()
+        public bool Redo()
         {
-            VectorCommandQueue commandQueue = _queueStackReverse.Pop();
-            commandQueue.Execute(_drawing);
-            _queueStackNormal.Push(commandQueue);
-            _actionHistory.Add(commandQueue.ToString());
+            if (_queueStackReverse.Count > 0)
+            {
+                VectorCommandQueue commandQueue = _queueStackReverse.Pop();
+                commandQueue.Execute(_drawing);
+                _queueStackNormal.Push(commandQueue);
+                _actionHistory.Add(commandQueue.ToString());
+                return true;
+            }
+            return false;
         }
 
         //public void ClearNormal()

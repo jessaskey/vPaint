@@ -242,6 +242,14 @@ namespace VPaint.Tools
             }
         }
 
+        public void KeyPress(object sender, KeyPressEventArgs e, int currentSnap)
+        {
+
+        }
+
+        public void KeyUp(object sender, KeyEventArgs e, int currentSnap)
+        {
+        }
 
     }
 }

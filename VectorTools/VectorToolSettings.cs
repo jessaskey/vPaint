@@ -10,6 +10,6 @@ namespace VPaint
     public static class VectorToolSettings
     {
         public static ScissorCutLineColor ScissorCutLineColor = ScissorCutLineColor.LeadingVectorColor;
-
+        public static int EllipseVertexCount = 10;
     }
 }

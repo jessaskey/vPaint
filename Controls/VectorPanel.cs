@@ -98,8 +98,10 @@ namespace VPaint
 
         public void Undo()
         {
-            _commandController.Undo();
-            RedrawControl();
+            if (_commandController.Undo())
+            {
+                RedrawControl();
+            }
         }
 
         #region Command Functions Here
@@ -448,6 +450,34 @@ namespace VPaint
             _drawing.Vectors.Add(vector);
         }
 
+        public void CreateEllipse(Rectangle rect, Color color, int vertexCount)
+        {
+            if (vertexCount < 3)
+                throw new Exception("Number of sides must be greater than or equal to 3!");
+
+            //Point panelCenterPoint = new Point(panel.Width / 2, panel.Height / 2);
+            float sides = (float)vertexCount;
+            float exteriorAngle = 360f / sides;
+
+            for (int i = 0; i < vertexCount; i++)
+            {
+                //point from center
+                double r1 = exteriorAngle * (float)i * Math.PI / 180.0;
+                double x1 = (((float)rect.Width)/2f) * Math.Cos(r1);
+                double y1 = (((float)rect.Height)/2f) * Math.Sin(r1);
+
+                double r2 = exteriorAngle * (float)((i + 1) % vertexCount) * Math.PI / 180.0;
+                double x2 = (((float)rect.Width) / 2f) * Math.Cos(r2);
+                double y2 = (((float)rect.Height) / 2f) * Math.Sin(r2);
+
+                //Point p1 = panelCenterPoint.Subtract(new Point((int)x1, (int)y1));
+                //Point p2 = panelCenterPoint.Subtract(new Point((int)x2, (int)y2));
+
+                Vector vector = new Vector(new Point((int)x1, (int)y1), new Point((int)x2, (int)y2), color);
+                _drawing.Vectors.Add(vector);
+            }
+        }
+
         public new void KeyDown(object sender, KeyEventArgs e)
         {
             //does the vector panel want any keys?
@@ -483,11 +513,17 @@ namespace VPaint
             }
             else if (e.KeyCode == Keys.Z && e.Control)
             {
-                _commandController.Undo();
+                if (_commandController.Undo())
+                {
+                    RedrawControl();
+                }
             }
             else if (e.KeyCode == Keys.Y && e.Control)
             {
-                _commandController.Redo();
+                if(_commandController.Redo())
+                {
+                    RedrawControl();
+                }
             }
             //Copy
             else if (e.KeyCode == Keys.C && e.Control)
@@ -516,6 +552,16 @@ namespace VPaint
                 //if not pass through to current tool
                 VectorToolController.KeyDown(sender, e, Globals.snapGrid);
             }
+        }
+
+        public void KeyPress(object sender, KeyPressEventArgs e)
+        {
+            VectorToolController.KeyPress(sender, e, Globals.snapGrid);
+        }
+
+        public void KeyUp(object sender, KeyEventArgs e)
+        {
+            VectorToolController.KeyUp(sender, e, Globals.snapGrid);
         }
 
         public void MoveSelectedPointsRelative(Point offset)
@@ -587,8 +633,6 @@ namespace VPaint
 
         private void pictureBox_Paint(object sender, PaintEventArgs e)
         {
-            //e.Graphics.MultiplyTransform(scaledPictureBox.ScaleM);
-            //e.Graphics.TranslateTransform(scaledPictureBox.Width / 2, scaledPictureBox.Height / 2);
             e.Graphics.ScaleTransform(scaledPictureBox.Zoom, scaledPictureBox.Zoom);
             e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
@@ -639,18 +683,27 @@ namespace VPaint
             {
                 Point adjustedStart = VectorToolController.DragStart.Divide(scaledPictureBox.Zoom);
                 Point adjustedEnd = VectorToolController.CurrentPosition.Divide(scaledPictureBox.Zoom);
-                //e.Graphics.FillRectangle(Brushes.White, _dragStart.X-(_editDotSize/2), _dragStart.Y-(_editDotSize/2), _editDotSize, _editDotSize);
-                switch (VectorToolController.DragShape)
+
+                //Only draw if the points are actually different
+                if (!adjustedStart.Matches(adjustedEnd))
                 {
-                    case DragShape.Line:
-                        //draw a line from where the first point is to where the mouse is
-                        e.Graphics.DrawLine(VectorToolController.Pen, adjustedStart, adjustedEnd);
-                        break;
-                    case DragShape.Rectangle:
-                        Pen selectPen = new Pen(Color.LightYellow, 1);
-                        selectPen.DashStyle = DashStyle.Dash;
-                        e.Graphics.DrawRectangle(selectPen, GetRectangle(adjustedStart, adjustedEnd));
-                        break;
+                    switch (VectorToolController.DragShape)
+                    {
+                        case DragShape.Line:
+                            //draw a line from where the first point is to where the mouse is
+                            e.Graphics.DrawLine(VectorToolController.Pen, adjustedStart, adjustedEnd);
+                            break;
+                        case DragShape.Rectangle:
+                            Pen selectPen = new Pen(Color.LightYellow, 1);
+                            selectPen.DashStyle = DashStyle.Dash;
+                            e.Graphics.DrawRectangle(selectPen, GetRectangle(adjustedStart, adjustedEnd));
+                            break;
+                        case DragShape.Ellipse:
+                            Pen ellipsePen = new Pen(Color.LightYellow, 1);
+                            ellipsePen.DashStyle = DashStyle.Dash;
+                            e.Graphics.DrawEllipse(ellipsePen, GetRectangle(adjustedStart, adjustedEnd));
+                            break;
+                    }
                 }
 
                 //if (_dragEnd != Point.Empty)

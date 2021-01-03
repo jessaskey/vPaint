@@ -18,6 +18,7 @@ namespace VPaint
         private static VectorToolSelect _toolSelect = new VectorToolSelect();
         private static VectorToolDraw _toolDraw = new VectorToolDraw();
         private static VectorToolScissor _toolScissor = new VectorToolScissor();
+        private static VectorToolEllipse _toolEllipse = new VectorToolEllipse();
 
         public static bool UsesSnap
         {
@@ -51,6 +52,16 @@ namespace VPaint
             _currentVectorToolObject?.KeyDown(sender, e, currentSnap);
         }
 
+        public static void KeyPress(object sender, KeyPressEventArgs e, int currentSnap)
+        {
+            _currentVectorToolObject?.KeyPress(sender, e, currentSnap);
+        }
+
+        public static void KeyUp(object sender, KeyEventArgs e, int currentSnap)
+        {
+            _currentVectorToolObject?.KeyDown(sender, e, currentSnap);
+        }
+
         public static ToolAction CurrentToolAction = ToolAction.None;
         public static VectorTool CurrentVectorTool
         {
@@ -68,6 +79,9 @@ namespace VPaint
                         break;
                     case VectorTool.Scissors:
                         _currentVectorToolObject = _toolScissor;
+                        break;
+                    case VectorTool.Ellipse:
+                        _currentVectorToolObject = _toolEllipse;
                         break;
                 }
             }

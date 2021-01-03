@@ -37,6 +37,10 @@ namespace VPaint
             Start = VectorPointController.Create(start);
             End = VectorPointController.Create(end);
             _colorIndex = VectorColorController.GetColorIndex(color);
+            if (_colorIndex > 0)
+            {
+                _brightness = 16;
+            }
         }
 
         public Vector(VectorPoint start, VectorPoint end, int colorIndex)
@@ -47,6 +51,10 @@ namespace VPaint
             End = VectorPointController.Create(end.Point);
             End.Selected = end.Selected;
             _colorIndex = colorIndex;
+            if (_colorIndex > 0)
+            {
+                _brightness = 16;
+            }
         }
 
         public override string ToString()

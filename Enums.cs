@@ -10,12 +10,14 @@ namespace VPaint
     {
         Selecting,
         Drawing,
-        Scissors
+        Scissors,
+        Ellipse
     }
 
     public enum DragShape : int
     {
         Line,
-        Rectangle
+        Rectangle,
+        Ellipse
     }
 }

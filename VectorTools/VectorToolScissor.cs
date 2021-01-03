@@ -153,5 +153,14 @@ namespace VPaint.Tools
                 VectorToolController.VectorPanel.RedrawControl();
             }
         }
+
+        public void KeyPress(object sender, KeyPressEventArgs e, int currentSnap)
+        {
+
+        }
+
+        public void KeyUp(object sender, KeyEventArgs e, int currentSnap)
+        {
+        }
     }
 }

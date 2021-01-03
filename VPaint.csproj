@@ -106,7 +106,11 @@
     <Compile Include="VectorCommands\DrawVectorCommand.cs" />
     <Compile Include="VectorCommands\IVectorCommand.cs" />
     <Compile Include="VectorCommands\VectorCommandQueue.cs" />
+    <Compile Include="VectorSource\SourceSegment.cs" />
+    <Compile Include="VectorSource\VectorSourceCommand.cs" />
+    <Compile Include="VectorSource\VectorSourceController.cs" />
     <Compile Include="VectorTools\IVectorTool.cs" />
+    <Compile Include="VectorTools\VectorToolEllipse.cs" />
     <Compile Include="VectorTools\VectorToolDraw.cs" />
     <Compile Include="VectorTools\VectorToolScissor.cs" />
     <Compile Include="VectorTools\VectorToolSelect.cs" />

@@ -62,9 +62,8 @@
             this.toolStripButtonPointer = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonCrosshair = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonScissors = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButtonMergePoints = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonCircleTool = new System.Windows.Forms.ToolStripButton();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.listViewVectors = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -75,18 +74,24 @@
             this.toolStripButtonVectorDown = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonVectorDelete = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonVisibility = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButtonInsertVCenter = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonCombineVectors = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonConnect = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonOptimizeVectors = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonSplitVector = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonMergePoints2 = new System.Windows.Forms.ToolStripButton();
+            this.timerAnimate = new System.Windows.Forms.Timer(this.components);
             this.tabControlToolProperties = new System.Windows.Forms.TabControl();
             this.tabPageSelect = new VPaint.ToolTabPage();
+            this.labelSelectTool = new System.Windows.Forms.Label();
             this.tabPageEdit = new VPaint.ToolTabPage();
             this.tabPageScissor = new VPaint.ToolTabPage();
             this.scissorToolPropertyControl1 = new VPaint.Controls.ScissorToolPropertyControl();
-            this.timerAnimate = new System.Windows.Forms.Timer(this.components);
-            this.labelSelectTool = new System.Windows.Forms.Label();
+            this.tabPageMirror = new System.Windows.Forms.TabPage();
+            this.label1 = new System.Windows.Forms.Label();
+            this.tabPageDrawEllipse = new System.Windows.Forms.TabPage();
+            this.label3 = new System.Windows.Forms.Label();
+            this.numericUpDownEllipseVertices = new System.Windows.Forms.NumericUpDown();
+            this.label2 = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -102,6 +107,9 @@
             this.tabControlToolProperties.SuspendLayout();
             this.tabPageSelect.SuspendLayout();
             this.tabPageScissor.SuspendLayout();
+            this.tabPageMirror.SuspendLayout();
+            this.tabPageDrawEllipse.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownEllipseVertices)).BeginInit();
             this.SuspendLayout();
             // 
             // statusStrip1
@@ -385,9 +393,8 @@
             this.toolStripButtonPointer,
             this.toolStripButtonCrosshair,
             this.toolStripButtonScissors,
-            this.toolStripButtonMergePoints,
             this.toolStripSeparator8,
-            this.toolStripButton1});
+            this.toolStripButtonCircleTool});
             this.toolStripTools.Location = new System.Drawing.Point(0, 0);
             this.toolStripTools.Name = "toolStripTools";
             this.toolStripTools.Size = new System.Drawing.Size(24, 485);
@@ -428,29 +435,20 @@
             this.toolStripButtonScissors.Text = "Scissors";
             this.toolStripButtonScissors.Click += new System.EventHandler(this.toolStripButtonScissors_Click);
             // 
-            // toolStripButtonMergePoints
-            // 
-            this.toolStripButtonMergePoints.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButtonMergePoints.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonMergePoints.Image")));
-            this.toolStripButtonMergePoints.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButtonMergePoints.Name = "toolStripButtonMergePoints";
-            this.toolStripButtonMergePoints.Size = new System.Drawing.Size(21, 20);
-            this.toolStripButtonMergePoints.Text = "Merge Points";
-            this.toolStripButtonMergePoints.Click += new System.EventHandler(this.toolStripButtonMergePoints_Click);
-            // 
             // toolStripSeparator8
             // 
             this.toolStripSeparator8.Name = "toolStripSeparator8";
             this.toolStripSeparator8.Size = new System.Drawing.Size(21, 6);
             // 
-            // toolStripButton1
+            // toolStripButtonCircleTool
             // 
-            this.toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton1.Image = global::VPaint.Properties.Resources.Flip_icon;
-            this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(21, 20);
-            this.toolStripButton1.Text = "Mirror Selected Vectors Horizontally";
+            this.toolStripButtonCircleTool.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonCircleTool.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonCircleTool.Image")));
+            this.toolStripButtonCircleTool.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonCircleTool.Name = "toolStripButtonCircleTool";
+            this.toolStripButtonCircleTool.Size = new System.Drawing.Size(21, 20);
+            this.toolStripButtonCircleTool.Text = "Oval/Circle Tool";
+            this.toolStripButtonCircleTool.Click += new System.EventHandler(this.toolStripButtonCircleTool_Click);
             // 
             // splitContainer2
             // 
@@ -492,6 +490,7 @@
             this.listViewVectors.View = System.Windows.Forms.View.Details;
             this.listViewVectors.SelectedIndexChanged += new System.EventHandler(this.listViewVectors_SelectedIndexChanged);
             this.listViewVectors.KeyDown += new System.Windows.Forms.KeyEventHandler(this.listViewVectors_KeyDown);
+            this.listViewVectors.KeyUp += new System.Windows.Forms.KeyEventHandler(this.listViewVectors_KeyUp);
             // 
             // columnHeader1
             // 
@@ -515,11 +514,11 @@
             this.toolStripButtonVectorDown,
             this.toolStripButtonVectorDelete,
             this.toolStripButtonVisibility,
-            this.toolStripButtonInsertVCenter,
             this.toolStripButtonCombineVectors,
             this.toolStripButtonConnect,
             this.toolStripButtonOptimizeVectors,
-            this.toolStripButtonSplitVector});
+            this.toolStripButtonSplitVector,
+            this.toolStripButtonMergePoints2});
             this.toolStrip2.Location = new System.Drawing.Point(0, 0);
             this.toolStrip2.Name = "toolStrip2";
             this.toolStrip2.Size = new System.Drawing.Size(263, 27);
@@ -566,16 +565,6 @@
             this.toolStripButtonVisibility.Text = "Toggle visibility on selected vectors";
             this.toolStripButtonVisibility.Click += new System.EventHandler(this.toolStripButtonVisibility_Click);
             // 
-            // toolStripButtonInsertVCenter
-            // 
-            this.toolStripButtonInsertVCenter.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButtonInsertVCenter.Image = global::VPaint.Properties.Resources.Center_icon;
-            this.toolStripButtonInsertVCenter.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButtonInsertVCenter.Name = "toolStripButtonInsertVCenter";
-            this.toolStripButtonInsertVCenter.Size = new System.Drawing.Size(24, 24);
-            this.toolStripButtonInsertVCenter.Text = "toolStripButton4";
-            this.toolStripButtonInsertVCenter.ToolTipText = "Insert VCenter Item";
-            // 
             // toolStripButtonCombineVectors
             // 
             this.toolStripButtonCombineVectors.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -617,11 +606,28 @@
             this.toolStripButtonSplitVector.Text = "Split a vector";
             this.toolStripButtonSplitVector.Click += new System.EventHandler(this.toolStripButtonSplitVector_Click);
             // 
+            // toolStripButtonMergePoints2
+            // 
+            this.toolStripButtonMergePoints2.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonMergePoints2.Image = global::VPaint.Properties.Resources.Center_icon;
+            this.toolStripButtonMergePoints2.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonMergePoints2.Name = "toolStripButtonMergePoints2";
+            this.toolStripButtonMergePoints2.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButtonMergePoints2.Text = "toolStripButton1";
+            this.toolStripButtonMergePoints2.Click += new System.EventHandler(this.toolStripButtonMergePoints_Click);
+            // 
+            // timerAnimate
+            // 
+            this.timerAnimate.Interval = 1000;
+            this.timerAnimate.Tick += new System.EventHandler(this.timerAnimate_Tick);
+            // 
             // tabControlToolProperties
             // 
             this.tabControlToolProperties.Controls.Add(this.tabPageSelect);
             this.tabControlToolProperties.Controls.Add(this.tabPageEdit);
             this.tabControlToolProperties.Controls.Add(this.tabPageScissor);
+            this.tabControlToolProperties.Controls.Add(this.tabPageMirror);
+            this.tabControlToolProperties.Controls.Add(this.tabPageDrawEllipse);
             this.tabControlToolProperties.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControlToolProperties.Location = new System.Drawing.Point(0, 0);
             this.tabControlToolProperties.Name = "tabControlToolProperties";
@@ -639,6 +645,15 @@
             this.tabPageSelect.TabIndex = 0;
             this.tabPageSelect.Text = "Select Tool Properties";
             this.tabPageSelect.UseVisualStyleBackColor = true;
+            // 
+            // labelSelectTool
+            // 
+            this.labelSelectTool.Location = new System.Drawing.Point(6, 15);
+            this.labelSelectTool.Name = "labelSelectTool";
+            this.labelSelectTool.Size = new System.Drawing.Size(246, 77);
+            this.labelSelectTool.TabIndex = 0;
+            this.labelSelectTool.Text = "Click points or lines to select. Select additional points/lines by holding down C" +
+    "TRL key. Select all items in rectangle by right click-dragging a rectangle.";
             // 
             // tabPageEdit
             // 
@@ -669,19 +684,70 @@
             this.scissorToolPropertyControl1.Size = new System.Drawing.Size(255, 95);
             this.scissorToolPropertyControl1.TabIndex = 0;
             // 
-            // timerAnimate
+            // tabPageMirror
             // 
-            this.timerAnimate.Interval = 1000;
-            this.timerAnimate.Tick += new System.EventHandler(this.timerAnimate_Tick);
+            this.tabPageMirror.Controls.Add(this.label1);
+            this.tabPageMirror.Location = new System.Drawing.Point(4, 22);
+            this.tabPageMirror.Name = "tabPageMirror";
+            this.tabPageMirror.Size = new System.Drawing.Size(255, 95);
+            this.tabPageMirror.TabIndex = 3;
+            this.tabPageMirror.Text = "Mirror Tool Properties";
+            this.tabPageMirror.UseVisualStyleBackColor = true;
             // 
-            // labelSelectTool
+            // label1
             // 
-            this.labelSelectTool.Location = new System.Drawing.Point(6, 15);
-            this.labelSelectTool.Name = "labelSelectTool";
-            this.labelSelectTool.Size = new System.Drawing.Size(246, 77);
-            this.labelSelectTool.TabIndex = 0;
-            this.labelSelectTool.Text = "Click points or lines to select. Select additional points/lines by holding down C" +
-    "TRL key. Select all items in rectangle by right click-dragging a rectangle.";
+            this.label1.Location = new System.Drawing.Point(15, 10);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(232, 76);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Mirrors the selected points across an axis";
+            // 
+            // tabPageDrawEllipse
+            // 
+            this.tabPageDrawEllipse.Controls.Add(this.label3);
+            this.tabPageDrawEllipse.Controls.Add(this.numericUpDownEllipseVertices);
+            this.tabPageDrawEllipse.Controls.Add(this.label2);
+            this.tabPageDrawEllipse.Location = new System.Drawing.Point(4, 22);
+            this.tabPageDrawEllipse.Name = "tabPageDrawEllipse";
+            this.tabPageDrawEllipse.Size = new System.Drawing.Size(255, 95);
+            this.tabPageDrawEllipse.TabIndex = 4;
+            this.tabPageDrawEllipse.Text = "Ellipse Tool Properties";
+            this.tabPageDrawEllipse.UseVisualStyleBackColor = true;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(92, 50);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(68, 13);
+            this.label3.TabIndex = 2;
+            this.label3.Text = "Vertex Count";
+            // 
+            // numericUpDownEllipseVertices
+            // 
+            this.numericUpDownEllipseVertices.Location = new System.Drawing.Point(19, 48);
+            this.numericUpDownEllipseVertices.Minimum = new decimal(new int[] {
+            3,
+            0,
+            0,
+            0});
+            this.numericUpDownEllipseVertices.Name = "numericUpDownEllipseVertices";
+            this.numericUpDownEllipseVertices.Size = new System.Drawing.Size(57, 20);
+            this.numericUpDownEllipseVertices.TabIndex = 1;
+            this.numericUpDownEllipseVertices.Value = new decimal(new int[] {
+            3,
+            0,
+            0,
+            0});
+            this.numericUpDownEllipseVertices.ValueChanged += new System.EventHandler(this.numericUpDownEllipseVertices_ValueChanged);
+            // 
+            // label2
+            // 
+            this.label2.Location = new System.Drawing.Point(16, 11);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(217, 34);
+            this.label2.TabIndex = 0;
+            this.label2.Text = "Draws an ellipse or circle. Hold Shift key for circle.";
             // 
             // MainForm
             // 
@@ -700,6 +766,7 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MainForm_KeyPress);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyUp);
             this.Resize += new System.EventHandler(this.MainForm_Resize);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -722,6 +789,10 @@
             this.tabControlToolProperties.ResumeLayout(false);
             this.tabPageSelect.ResumeLayout(false);
             this.tabPageScissor.ResumeLayout(false);
+            this.tabPageMirror.ResumeLayout(false);
+            this.tabPageDrawEllipse.ResumeLayout(false);
+            this.tabPageDrawEllipse.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownEllipseVertices)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -755,7 +826,6 @@
         private System.Windows.Forms.ToolStripButton toolStripButtonVectorUp;
         private System.Windows.Forms.ToolStripButton toolStripButtonVectorDown;
         private System.Windows.Forms.ToolStripButton toolStripButtonVectorDelete;
-        private System.Windows.Forms.ToolStripButton toolStripButtonInsertVCenter;
         private System.Windows.Forms.ToolStripButton toolStripButtonCombineVectors;
         private System.Windows.Forms.ToolStripButton toolStripButtonImport;
         private System.Windows.Forms.ToolStrip toolStripTools;
@@ -774,18 +844,24 @@
         private ToolTabPage tabPageEdit;
         private ToolTabPage tabPageScissor;
         private Controls.ScissorToolPropertyControl scissorToolPropertyControl1;
-        private System.Windows.Forms.ToolStripButton toolStripButtonMergePoints;
         private System.Windows.Forms.ToolStripButton toolStripButtonVisibility;
         private System.Windows.Forms.ToolStripButton toolStripButtonConnect;
         private System.Windows.Forms.ToolStripButton toolStripButtonOptimizeVectors;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
-        private System.Windows.Forms.ToolStripButton toolStripButton1;
         private System.Windows.Forms.ToolStripButton toolStripButtonSaveAs;
         private System.Windows.Forms.ToolStripButton toolStripButtonSplitVector;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator9;
         private System.Windows.Forms.ToolStripButton toolStripButtonPlay;
         private System.Windows.Forms.Timer timerAnimate;
         private System.Windows.Forms.Label labelSelectTool;
+        private System.Windows.Forms.ToolStripButton toolStripButtonCircleTool;
+        private System.Windows.Forms.ToolStripButton toolStripButtonMergePoints2;
+        private System.Windows.Forms.TabPage tabPageMirror;
+        private System.Windows.Forms.TabPage tabPageDrawEllipse;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.NumericUpDown numericUpDownEllipseVertices;
     }
 }
 

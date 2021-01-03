@@ -13,76 +13,128 @@ namespace VPaint
 {
     public partial class BinaryExportDialog : Form
     {
+        private int _indent = 8;
+        private List<Drawing> _allDrawings = new List<Drawing>();
+        private Drawing _drawing = null;
 
-        public Drawing Drawing { get; set; }
         public BinaryExportDialog()
         {
             InitializeComponent();
         }
 
+        public void SetDrawing(Drawing drawing, List<Drawing> allDrawings)
+        {
+            _allDrawings.Clear();
+            _drawing = drawing;
+            _allDrawings.AddRange(allDrawings);
+        }
+
         public void UpdateSource()
         {
             textBoxSource.Text = "";
-            if (Drawing != null)
-            {
-                StringBuilder sb = new StringBuilder();
-                Point lastPoint = Point.Empty;
-                Color lastColor = Color.Transparent;
+            StringBuilder sourceBuilder = new StringBuilder();
+            Dictionary<Drawing, List<VectorSourceCommand>> drawingSources = new Dictionary<Drawing, List<VectorSourceCommand>>();
+            //we always export with InvertY from Windows coords to Atari Coords
+            VectorExportFlags exportFlags = VectorExportFlags.InvertY;
+            if (checkBoxEncodeColorChanges.Checked) exportFlags |= VectorExportFlags.OutputColorChanges;
+            if (checkBoxForceLongVectors.Checked) exportFlags |= VectorExportFlags.ForceLongVectors;
+            if (checkBoxRTSL.Checked) exportFlags |= VectorExportFlags.AddRTSL;
+            if (checkBoxAddSubroutines.Checked) exportFlags |= VectorExportFlags.GenerateSubroutines;
+            if (checkBoxExportAll.Checked) exportFlags |= VectorExportFlags.PrependFileNameAsLabel;
 
-                foreach (Vector v in Drawing.Vectors)
+            foreach (Drawing drawing in _allDrawings)
+            {
+                if (_drawing != null && !checkBoxExportAll.Checked && drawing != _drawing)
                 {
-                    if (v.DisplayColor != lastColor && checkBoxEncodeColorChanges.Checked)
-                    {
-                        sb.AppendLine(GetStat(v));
-                        lastColor = v.DisplayColor;
-                    }
-                    if (lastPoint != Point.Empty && (v.Start.Point.X != lastPoint.X || v.Start.Point.Y != lastPoint.Y))
-                    {
-                        //must draw hidden vector
-                        sb.AppendLine(GetVector(lastPoint, v.Start.Point, false));
-                    }
-                    sb.AppendLine(GetVector(v.Start.Point, v.End.Point, v.DisplayColor != Color.Transparent));
-                    lastPoint = v.End.Point;
+                    continue;
                 }
-                textBoxSource.Text = sb.ToString();
+                List<VectorSourceCommand> sourceCommands = VectorSourceController.FromDrawing(drawing, exportFlags);
+                drawingSources.Add(drawing, sourceCommands);
             }
-        }
-
-        private string GetVector(Point start, Point end, bool visible)
-        {
-            string command = "vctrl";
-            int absX = Math.Abs(end.X - start.X);
-            int absY = Math.Abs(end.Y - start.Y);
-            if (!checkBoxForceLongVectors.Checked && absX <= 32 && absX % 2 == 0 && absY <= 32 && absY % 2 == 0)
+            //do we need to parse to subroutines?
+            if (exportFlags.HasFlag(VectorExportFlags.GenerateSubroutines))
             {
-                if (checkBoxForceLongVectors.Checked)
+                List<KeyValuePair<SourceSegment<VectorSourceCommand>,int>> allCodeSegments = VectorSourceController.ParseSubroutines(drawingSources);
+                var codeSegmentsFiltered = allCodeSegments.Where(p => p.Value >= (int)numericUpSubroutineUsages.Value && p.Key.GetSegments().Count >= (int)numericUpDownSubroutineElements.Value);
+
+                //int bytesSaved = 0;
+                //foreach (var kvp in codeSegmentsFiltered.OrderByDescending(k=>k.Key.GetSegments().Count))
+                //{
+                //    //print out each match, with the best subroutines identified first
+                //    StringBuilder sb = new StringBuilder();
+                //    int hits = kvp.Value;
+                //    int elements = kvp.Key.List.Count;
+                //    sb.AppendLine("Match with " + hits.ToString() + " hits and having " + elements.ToString() + " lines.");
+                //    sb.AppendLine(kvp.Key.ToString());
+                //    sb.AppendLine("");
+                //    // sourceBuilder.AppendLine(sb.ToString());
+                //    bytesSaved += (hits * (elements - 1));
+                //}
+                //sourceBuilder.AppendLine("Total Bytes Saved = " + bytesSaved.ToString() + "(" + bytesSaved.ToString("X4") + ")");
+                //replace matches
+                List<List<VectorSourceCommand>> subroutines = new List<List<VectorSourceCommand>>();
+                foreach (var codeSegment in codeSegmentsFiltered)
                 {
-                    command = "vctrl";
+                    string subroutineLabel = textBoxSubroutinePrefix.Text + subroutines.Count.ToString("D2");
+                    bool subroutineUsed = false;
+                    foreach (var drawingSource in drawingSources)
+                    {
+                        bool added = VectorSourceController.InsertSubroutine(drawingSource.Value, codeSegment.Key, subroutineLabel);
+                        if (added)
+                        {
+                            subroutineUsed = true;
+                        }
+                    }
+                    if (subroutineUsed)
+                    {
+                        subroutines.Add(VectorSourceController.GetSubroutine(codeSegment.Key, subroutineLabel));
+                    }
                 }
-                else
+                foreach (var ds in drawingSources)
                 {
-                    command = "vctr";
+                    if (exportFlags.HasFlag(VectorExportFlags.AddRTSL))
+                    {
+                        ds.Value.Add(new VectorSourceCommand("rtsl"));
+                    }
+                    foreach (var s in ds.Value)
+                    {
+                        sourceBuilder.AppendLine(s.ToSourceString(10,50));
+                    }
+                    //separator
+                    sourceBuilder.AppendLine("");
+                }
+                //add the actual subroutines to SourceCommands (at the end)
+                foreach (var subroutine in subroutines)
+                {
+                    if (exportFlags.HasFlag(VectorExportFlags.AddRTSL))
+                    {
+                        subroutine.Add(new VectorSourceCommand("rtsl"));
+                    }
+                    foreach (var sourceLine in subroutine)
+                    {
+                        sourceBuilder.AppendLine(sourceLine.ToSourceString(10,50));
+                    }
+                    sourceBuilder.AppendLine("");
+                }
+            }
+            else
+            {
+                foreach(var ds in drawingSources)
+                {
+                    if (exportFlags.HasFlag(VectorExportFlags.AddRTSL))
+                    {
+                        ds.Value.Add(new VectorSourceCommand("rtsl"));
+                    }
+                    foreach (var s in ds.Value)
+                    {
+                        sourceBuilder.AppendLine(s.ToSourceString(10,50));
+                    }
+                    //separator
+                    sourceBuilder.AppendLine("");
                 }
             } 
-            return command + "(" + ((end.X - start.X)).ToString() + "d," + ((end.Y - start.Y) * -1).ToString() + "d," + (visible ? "visible" : "hidden") + ")";
+            textBoxSource.Text = sourceBuilder.ToString();
         }
-
-        private string GetStat(Vector v)
-        {
-            bool sparkle = v.Sparkle;
-            bool xflip = false;
-            int page = v.Page;
-
-            int stat_intensity = v.Brightness;
-            if (v.DisplayColor == Color.Transparent)
-            {
-                stat_intensity = 0;
-            }
-            int stat_color = VectorColorController.GetColorIndex(v.DisplayColor);
-
-            return "vstat(" + (sparkle ? "sparkle_on" : "sparkle_off") + "," + (xflip ? "xflip_on" : "xflip_off") + ",vpage" + page.ToString() + ",$" + stat_intensity.ToString("X1").ToUpper() + "," + VectorColorController.GetSourceNameByIndex(stat_color) + ")";
-        }
-
 
         private void checkBoxForceLongVectors_CheckedChanged(object sender, EventArgs e)
         {
@@ -111,5 +163,35 @@ namespace VPaint
             }
         }
 
+        private void checkBoxExportAll_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateSource();
+        }
+
+        private void checkBoxMinimize_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateSource();
+        }
+
+        private void checkBoxAddSubroutines_CheckedChanged(object sender, EventArgs e)
+        {
+            groupBoxSubroutines.Enabled = checkBoxAddSubroutines.Checked;
+            UpdateSource();
+        }
+
+        private void checkBoxRTSL_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateSource();
+        }
+
+        private void numericUpSubroutineUsages_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateSource();
+        }
+
+        private void numericUpDownSubroutineElements_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateSource();
+        }
     }
 }

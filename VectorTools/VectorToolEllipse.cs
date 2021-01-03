@@ -10,21 +10,22 @@ using System.Windows.Forms;
 
 namespace VPaint.Tools
 {
-    public class VectorToolDraw : IVectorTool
+    public class VectorToolEllipse : IVectorTool
     {
-        private enum DrawToolState
+        private enum EllipseToolState
         {
             Idle,
             Drawing
         }
 
-        private DrawToolState _currentToolState = DrawToolState.Idle;
+        private EllipseToolState _currentToolState = EllipseToolState.Idle;
         private Point _selectedPoint = Point.Empty;
         private Point _dragStart = Point.Empty;
         private Point _currentPosition = Point.Empty;
         private Pen _pen = new Pen(Brushes.Yellow, 1);
-        //the tool pointer renders to center, this wil take it to the pencil point
+        //the tool pointer renders to cente, this wil take it to the pencil point
         private Size _toolOffset = new Size(8, 8);
+        private bool _forceCircle = false;
 
         public Point DragStart
         {
@@ -38,7 +39,7 @@ namespace VPaint.Tools
 
         public DragShape DragShape
         {
-            get { return DragShape.Line; }
+            get { return DragShape.Ellipse; }
         }
 
         public Pen Pen
@@ -58,15 +59,11 @@ namespace VPaint.Tools
             {
                 switch (_currentToolState)
                 {
-                    case DrawToolState.Idle:
+                    case EllipseToolState.Idle:
                         //start draw a line mode for tool
                         _dragStart = hitPoint;
                         _currentPosition = hitPoint;
-                        break;
-                    case DrawToolState.Drawing:
-                        //finished
-                        VectorToolController.VectorPanel.CreateVector(_dragStart, _currentPosition, MainForm.GetSelectedColor()); //.GetDrawing().Vectors.Add(new Vector(_dragStart, hitPoint, MainForm.GetSelectedColor()));
-                        _dragStart = hitPoint;
+                        _currentToolState = EllipseToolState.Drawing;
                         break;
                 }
                 VectorToolController.VectorPanel.RedrawControl();
@@ -78,10 +75,18 @@ namespace VPaint.Tools
         {
             hitPoint = hitPoint.Add(-_toolOffset.Width, _toolOffset.Height);
             Cursor.Current = new Cursor(new MemoryStream(Properties.Resources.pencil_003_16xMD));
-            if (_currentToolState == DrawToolState.Drawing)
+            if (_currentToolState == EllipseToolState.Drawing)
             {
                 if (_dragStart != Point.Empty)
                 {
+                    if (_forceCircle)
+                    {
+                        int xDiff = _dragStart.X - hitPoint.X;
+                        int yDiff = _dragStart.Y - hitPoint.Y;
+                        int min = Math.Min(xDiff, yDiff);
+                        hitPoint.X = _dragStart.X - min;
+                        hitPoint.Y = _dragStart.Y - min;
+                    }
                     _currentPosition = hitPoint;
                 }
                 VectorToolController.VectorPanel.RedrawControl();
@@ -98,20 +103,22 @@ namespace VPaint.Tools
 
         public void MouseUp(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys, int currentSnap)
         {
-            if(_currentToolState== DrawToolState.Idle)
+            switch (_currentToolState)
             {
-                _currentToolState = DrawToolState.Drawing;
+                case EllipseToolState.Drawing:
+                    //finished
+                    Rectangle rect = new Rectangle(_dragStart, new Size(_currentPosition.X - _dragStart.X, _currentPosition.Y - _dragStart.Y));
+                    VectorToolController.VectorPanel.CreateEllipse(rect, MainForm.GetSelectedColor(), VectorToolSettings.EllipseVertexCount);
+                    _currentToolState = EllipseToolState.Idle;
+                    break;
             }
         }
        
         public void KeyDown(object sender, KeyEventArgs e, int currentSnap)
         {
-            if (e.KeyCode == Keys.Escape)
-            {
-                _dragStart = Point.Empty;
-                _currentToolState = DrawToolState.Idle;
-                VectorToolController.VectorPanel.ClearAllSelections();
-                VectorToolController.VectorPanel.RedrawControl();
+            if (e.Shift)
+            { 
+                _forceCircle = true;
             }
         }
 
@@ -122,7 +129,10 @@ namespace VPaint.Tools
 
         public void KeyUp(object sender, KeyEventArgs e, int currentSnap)
         {
-
+            if (!e.Shift)
+            {
+                _forceCircle = false;
+            }
         }
     }
 }

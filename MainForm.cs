@@ -84,6 +84,7 @@ namespace VPaint
             //NewDrawing();
             //_currentPaletteTool = PaletteTool.Selecting;
             SetCurrentTool(VectorTool.Selecting);
+            numericUpDownEllipseVertices.Value = VectorToolSettings.EllipseVertexCount;
         }
 
         public void ReportCoordinates(Point absoluteCoordinate, Point relativeCoordinate, Size currentVector)
@@ -335,24 +336,31 @@ namespace VPaint
         private void toolStripButtonExportBinary_Click(object sender, EventArgs e)
         {
             BinaryExportDialog bd = new BinaryExportDialog();
-            bd.Drawing = GetCurrentDrawing();
+            List<Drawing> allDrawings = new List<Drawing>();
+            foreach (TabPage page in tabControlImages.TabPages)
+            {
+                VectorPanel vp = page.Tag as VectorPanel;
+                allDrawings.Add(vp.Drawing);
+            }
+            bd.SetDrawing(GetCurrentDrawing(), allDrawings);
             bd.UpdateSource();
             bd.ShowDialog();
         }
 
+        #region TabControl Events
         private void tabControlImages_SelectedIndexChanged(object sender, EventArgs e)
         {
             VectorPanel vectorPanel = GetCurrentVectorPanel();
             VectorToolController.VectorPanel = vectorPanel;
-            vectorPanel.SetZoom(Globals.zoomLevel);
+            if (vectorPanel != null)
+            {
+                vectorPanel.SetZoom(Globals.zoomLevel);
+            }
             ReloadDrawing();
         }
 
         private void tabControlImages_DrawItem(object sender, DrawItemEventArgs e)
         {
-            //This code will render a "x" mark at the end of the Tab caption. 
-            //e.Graphics.DrawString("x", e.Font, Brushes.Black, e.Bounds.Right - 12, e.Bounds.Top + 4);
-
             Bitmap closeIcon = Properties.Resources.file_close;
             e.Graphics.DrawImage(closeIcon, new Point(e.Bounds.Right - 14, e.Bounds.Top + 6));
             
@@ -369,7 +377,6 @@ namespace VPaint
             {
                 e.Graphics.DrawString(drawing.GetFilenameTitle(), e.Font, Brushes.Black, e.Bounds.Left + 4, e.Bounds.Top + 4);
             }
-            //e.DrawFocusRectangle();
         }
 
         private void tabControlImages_MouseDown(object sender, MouseEventArgs e)
@@ -377,18 +384,30 @@ namespace VPaint
             for (int i = 0; i < this.tabControlImages.TabPages.Count; i++)
             {
                 Rectangle r = tabControlImages.GetTabRect(i);
-                //Getting the position of the "x" mark.
+                //Getting the position of the close button
                 Rectangle closeButton = new Rectangle(r.Right - 12, r.Top, 12, 12);
                 if (closeButton.Contains(e.Location))
                 {
-                    if (MessageBox.Show("Would you like to Close this Tab?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    //hit on close, see if drawing is saved or if user needs prompted
+                    VectorPanel vp = tabControlImages.TabPages[i].Tag as VectorPanel;
+                    if (vp.Drawing.IsDirty)
                     {
-                        this.tabControlImages.TabPages.RemoveAt(i);
-                        break;
+                        DialogResult dr = MessageBox.Show("This image is not saved, would you like to save it before closing?", "Confirm Close", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                        if (dr == DialogResult.Yes)
+                        {
+                            SaveDrawing(vp.Drawing);
+                            break;
+                        }
                     }
+                    this.tabControlImages.TabPages.RemoveAt(i);
+                    //can only hit one... so exit this now
+                    break;
                 }
             }
         }
+
+        #endregion
+
 
         private void listViewVectors_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -434,6 +453,11 @@ namespace VPaint
                     }
                 }
             }
+        }
+
+        private void listViewVectors_KeyUp(object sender, KeyEventArgs e)
+        {
+
         }
 
         private void ReloadDrawing()
@@ -495,7 +519,8 @@ namespace VPaint
                 }
                 ImportDialog id = new ImportDialog();
                 id.VectorColor = GetSelectedColor();
-                id.StartPoint = new Point(0, 0); // new Point(currentPanel.Width / 2, currentPanel.Height / 2);
+                id.StartPoint = new Point(0, 0);
+                id.Transform = VectorTransform.FlipY;
                 DialogResult dr = id.ShowDialog();
                 VectorPanel vp = GetCurrentVectorPanel();
                 if (vp != null)
@@ -531,6 +556,12 @@ namespace VPaint
             SetCurrentTool(VectorTool.Scissors);
         }
 
+        private void toolStripButtonCircleTool_Click(object sender, EventArgs e)
+        {
+            ApplyToolStripRadioEffect(sender);
+            SetCurrentTool(VectorTool.Ellipse);
+        }
+
         private void SetCurrentTool(VectorTool vectorTool)
         {
             //_currentPaletteTool = vectorTool;
@@ -554,6 +585,9 @@ namespace VPaint
                     break;
                 case VectorTool.Scissors:
                     tabControlToolProperties.TabPages.Add(tabPageScissor);
+                    break;
+                case VectorTool.Ellipse:
+                    tabControlToolProperties.TabPages.Add(tabPageDrawEllipse);
                     break;
             }
             VectorToolController.CurrentVectorTool = vectorTool;
@@ -631,7 +665,12 @@ namespace VPaint
 
         private void MainForm_KeyPress(object sender, KeyPressEventArgs e)
         {
+            GetCurrentVectorPanel()?.KeyPress(sender, e);
+        }
 
+        private void MainForm_KeyUp(object sender, KeyEventArgs e)
+        {
+            GetCurrentVectorPanel()?.KeyUp(sender, e);
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -772,5 +811,11 @@ namespace VPaint
             vectorPanel.SetZoom(Globals.zoomLevel);
             ReloadDrawing();
         }
+
+        private void numericUpDownEllipseVertices_ValueChanged(object sender, EventArgs e)
+        {
+            VectorToolSettings.EllipseVertexCount = (int)numericUpDownEllipseVertices.Value;
+        }
+
     }
 }

@@ -14,6 +14,8 @@ namespace VPaint
         void MouseMove(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys, int currentSnap);
         void MouseDown(object sender, MouseEventArgs e, Point snapPoint, Keys modifierKeys, int currentSnap);
         void KeyDown(object sender, KeyEventArgs e, int currentSnap);
+        void KeyPress(object sender, KeyPressEventArgs e, int currentSnap);
+        void KeyUp(object sender, KeyEventArgs e, int currentSnap);
 
         Point DragStart { get; }
         Point CurrentPosition { get; }
